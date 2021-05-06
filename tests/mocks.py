@@ -28,6 +28,8 @@ def mock_node(dev_id, addr, node_type="htr"):
     node.node_type = node_type
     node.name = f"node_{addr}"
     node.node_id = f"{dev_id}-{addr}"
+    # TODO: pre-configure the test nodes rather than using random choices
+    # (tests should be predictable)
     node.status = {
         "mtemp": random.random() * 40,
         "stemp": random.random() * 40,
@@ -36,7 +38,7 @@ def mock_node(dev_id, addr, node_type="htr"):
         "locked": False,
         "active": random.choice([True, False]),
         "power": random.random() * 1000,
-        "mode": random.choice(["off", "manual", "auto", "modified_auto"]),
+        "mode": random.choice(["off", "manual", "auto", "modified_auto", "self_learn"]),
     }
     node.async_update = AsyncMock(return_value=node.status)
     return node

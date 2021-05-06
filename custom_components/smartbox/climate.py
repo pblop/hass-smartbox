@@ -52,6 +52,8 @@ def mode_to_hvac_mode(mode):
         # This occurs when the temperature is modified while in auto mode.
         # Mapping it to auto seems to make this most sense
         return HVAC_MODE_AUTO
+    elif mode == "self_learn":
+        return HVAC_MODE_AUTO
     else:
         _LOGGER.error(f"Unknown smartbox node mode {mode}")
         raise ValueError(f"Unknown smartbox node mode {mode}")
@@ -63,6 +65,8 @@ def hvac_mode_to_mode(hvac_mode):
     elif hvac_mode == HVAC_MODE_HEAT:
         return "manual"
     elif hvac_mode == HVAC_MODE_AUTO:
+        # TODO: we have no way to differentiate other modes we consider 'auto',
+        # e.g. self_learn
         return "auto"
     else:
         raise ValueError(f"Unsupported hvac mode {hvac_mode}")
