@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.1 (alpha)
+
+### Features
+* Add support for 'self_learn' mode. This is mapped to HVAC_MODE_AUTO.
+
 ## 0.2.0 (alpha)
 
 ### Features
