@@ -11,22 +11,22 @@ changelog_version() {
 }
 
 manifest_smartbox_version() {
-    sed -n -e 's/^.*\(smartbox[=><]\+[0-9\.]\+\).*$/\1/p' custom_components/smartbox/manifest.json
+    sed -n -e 's/^.*\(smartbox.git@v[0-9\.]\+\).*$/\1/p' custom_components/smartbox/manifest.json
 }
 
 requirements_smartbox_version() {
-    sed -n -e 's/^.*\(smartbox[=><]\+[0-9\.]\+\).*$/\1/p' requirements.txt
+    sed -n -e 's/^.*\(smartbox.git@v[0-9\.]\+\).*$/\1/p' requirements.txt
 }
 
 if [ $(manifest_version) != $(changelog_version) ]
 then
-    echo "Manifest version does not match changelog" >&2
+    echo "Manifest version $(manifest_version) does not match changelog $(changelog_version)" >&2
     exit 1
 fi
 
 if [ $(manifest_smartbox_version) != $(requirements_smartbox_version) ]
 then
-    echo "Manifest smartbox version does not match requirements smartbox version" >&2
+    echo "Manifest smartbox version $(manifest_smartbox_version) does not match requirements smartbox version $(requirements_smartbox_version)" >&2
     exit 1
 fi
 

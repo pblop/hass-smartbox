@@ -1,7 +1,7 @@
 -r requirements.txt
 black
 # Needs to be tightly coordinated with pytest-homeassistant-custom-component
-homeassistant>=2021.5.0,<2021.6
+homeassistant>=2021.5.0b4,<2021.6
 flake8
 pytest-aiohttp
 pytest-asyncio
