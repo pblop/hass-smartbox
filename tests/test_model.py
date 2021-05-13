@@ -176,6 +176,46 @@ async def test_smartbox_device_on_update(hass, caplog):
         ) in caplog.record_tuples
 
 
+async def test_smartbox_device_ignored_messages(hass, caplog):
+    dev_id = "test_device_id_1"
+    mock_session = MagicMock()
+    mock_node_1 = MagicMock()
+    # Simulate initialise_nodes with mock data, make sure nobody calls the real one
+    with patch(
+        "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
+        new_callable=NonCallableMock,
+    ):
+        device = SmartboxDevice(dev_id, mock_session)
+        device._nodes = {("htr", 1): mock_node_1}
+
+        # Test we error on message types we haven't seen
+        mock_update = {"path": "/htr/1/new_update", "body": {}}
+        device.on_update(mock_update)
+        mock_node_1.update_status.assert_not_called()
+        assert (
+            "custom_components.smartbox.model",
+            logging.ERROR,
+            "Couldn't match update {'path': '/htr/1/new_update', 'body': {}}",
+        ) in caplog.record_tuples
+
+        # Test we skip certain message types
+        def test_message_type(path):
+            mock_update = {"path": path, "body": {}}
+            device.on_update(mock_update)
+            mock_node_1.update_status.assert_not_called()
+            assert (
+                "custom_components.smartbox.model",
+                logging.DEBUG,
+                f"Skipping update {{'path': '{path}', 'body': {{}}}}",
+            ) in caplog.record_tuples
+
+        test_message_type("/connected")
+        test_message_type("/mgr/nodes")
+        test_message_type("/htr/1/prog")
+        test_message_type("/htr/1/setup")
+        test_message_type("/htr/1/version")
+
+
 async def test_smartbox_node(hass):
     dev_id = "test_device_id_1"
     mock_device = MagicMock()

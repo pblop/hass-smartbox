@@ -9,6 +9,10 @@ _LOGGER = logging.getLogger(__name__)
 
 _AWAY_STATUS_UPDATE_RE = re.compile(r"^/mgr/away_status")
 _NODE_STATUS_UPDATE_RE = re.compile(r"^/([^/]+)/(\d+)/status")
+_MESSAGE_SKIP_RE = re.compile(
+    r"^/connected|/mgr/nodes|/([^/]+)/(\d+)/(prog|setup|version)"
+)
+
 _HEATER_NODE_TYPES = ["htr", "htr_mod"]
 
 
@@ -103,7 +107,12 @@ class SmartboxDevice(object):
             self._away_status_update(data["body"])
             return
 
-        _LOGGER.error(f"Couldn't match update {data['path']}")
+        m = _MESSAGE_SKIP_RE.match(data["path"])
+        if m:
+            _LOGGER.debug(f"Skipping update {data}")
+            return
+
+        _LOGGER.error(f"Couldn't match update {data}")
 
     @property
     def dev_id(self):
