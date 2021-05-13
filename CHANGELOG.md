@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.2.2 (alpha)
+
+### Bug Fixes
+* Use correct format for manifest and requirements.txt github reference to smartbox
+
+### Features
+* Log known ignored messages at DEBUG level (Unknown messages are still logged at ERROR)
+* Update for Home Assistant 2021.5
+
 ## 0.2.1 (alpha)
 
 ### Features
