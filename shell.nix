@@ -12,6 +12,7 @@ let
     flake8
     hass-smartbox
     # TODO: duplicating checkInputs from hass-smartbox
+    mypy
     pytest
     pytest-aiohttp
     pytest-asyncio
