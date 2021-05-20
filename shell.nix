@@ -19,7 +19,9 @@ let
     pytest-aiohttp
     pytest-asyncio
     pytest-cov
+    pytest-flake8
     pytest-homeassistant-custom-component
+    pytest-mypy
     pytest-randomly
     pytest-sugar
     tox
