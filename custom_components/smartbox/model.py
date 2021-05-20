@@ -4,6 +4,8 @@ import re
 
 from homeassistant.core import HomeAssistant
 from smartbox import Session, SocketSession
+from typing import Any, Dict, List, Union
+from unittest.mock import MagicMock
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -16,43 +18,12 @@ _MESSAGE_SKIP_RE = re.compile(
 _HEATER_NODE_TYPES = ["htr", "htr_mod"]
 
 
-def is_heater_node(node):
-    return node.node_type in _HEATER_NODE_TYPES
-
-
-def is_supported_node(node):
-    # TODO: add support for 'thm' (thermostat) nodes
-    return is_heater_node(node)
-
-
-async def get_devices(
-    hass: HomeAssistant, api_name, basic_auth_creds, username, password
-):
-    session = await hass.async_add_executor_job(
-        Session, api_name, basic_auth_creds, username, password
-    )
-    session_devices = await hass.async_add_executor_job(session.get_devices)
-    # TODO: gather?
-    devices = [
-        await create_smartbox_device(hass, session_device["dev_id"], session)
-        for session_device in session_devices
-    ]
-    return devices
-
-
-async def create_smartbox_device(hass, dev_id, session):
-    """Factory function for SmartboxDevices"""
-    device = SmartboxDevice(dev_id, session)
-    await device.initialise_nodes(hass)
-    return device
-
-
 class SmartboxDevice(object):
-    def __init__(self, dev_id, session):
+    def __init__(self, dev_id: str, session: Union[Session, MagicMock]) -> None:
         self._dev_id = dev_id
         self._session = session
 
-    async def initialise_nodes(self, hass):
+    async def initialise_nodes(self, hass: HomeAssistant) -> None:
         # Would do in __init__, but needs to be a coroutine
         session_nodes = await hass.async_add_executor_job(
             self._session.get_nodes, self.dev_id
@@ -76,17 +47,19 @@ class SmartboxDevice(object):
         _LOGGER.debug(f"Starting SocketSession task for device {self._dev_id}")
         asyncio.create_task(self._socket_session.run())
 
-    def on_dev_data(self, data):
+    def on_dev_data(self, data: Dict[str, Dict[str, bool]]) -> None:
         _LOGGER.debug(f"Received dev_data: {data}")
         self._away_status_update(data["away_status"])
 
-    def _away_status_update(self, away_status):
+    def _away_status_update(self, away_status: Dict[str, bool]) -> None:
         _LOGGER.debug(f"Away status update: {away_status}")
         # update all nodes
         for node in self._nodes.values():
             node.away = away_status["away"]
 
-    def _node_status_update(self, node_type, addr, node_status):
+    def _node_status_update(
+        self, node_type: str, addr: int, node_status: Dict[str, Union[float, str, bool]]
+    ) -> None:
         _LOGGER.debug(f"Node status update: {node_status}")
         node = self._nodes.get((node_type, addr), None)
         if node is not None:
@@ -94,7 +67,10 @@ class SmartboxDevice(object):
         else:
             _LOGGER.error(f"Received update for unknown node {node_type} {addr}")
 
-    def on_update(self, data):
+    def on_update(
+        self,
+        data: Dict[str, Any],
+    ) -> None:
         _LOGGER.debug(f"Received update: {data}")
 
         m = _NODE_STATUS_UPDATE_RE.match(data["path"])
@@ -115,7 +91,7 @@ class SmartboxDevice(object):
         _LOGGER.error(f"Couldn't match update {data}")
 
     @property
-    def dev_id(self):
+    def dev_id(self) -> str:
         return self._dev_id
 
     def get_nodes(self):
@@ -123,7 +99,13 @@ class SmartboxDevice(object):
 
 
 class SmartboxNode(object):
-    def __init__(self, device, node_info, session, status):
+    def __init__(
+        self,
+        device: Union[SmartboxDevice, MagicMock],
+        node_info: Dict[str, Any],
+        session: Union[Session, MagicMock],
+        status: Dict[str, Any],
+    ) -> None:
         self._device = device
         self._node_info = node_info
         self._session = session
@@ -131,32 +113,32 @@ class SmartboxNode(object):
         self._away = False
 
     @property
-    def node_id(self):
+    def node_id(self) -> str:
         # TODO: are addrs only unique among node types, or for the whole device?
         return f"{self._device.dev_id}-{self._node_info['addr']}"
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self._node_info["name"]
 
     @property
-    def node_type(self):
+    def node_type(self) -> str:
         """Return node type, e.g. 'htr' for heaters"""
         return self._node_info["type"]
 
     @property
-    def addr(self):
+    def addr(self) -> int:
         return self._node_info["addr"]
 
     @property
-    def status(self):
+    def status(self) -> Dict[str, Union[float, str, bool]]:
         return self._status
 
-    def update_status(self, status):
+    def update_status(self, status: Dict[str, Union[float, str, bool]]) -> None:
         _LOGGER.debug(f"Updating node {self.name} status: {status}")
         self._status = status
 
-    def set_status(self, **status_args):
+    def set_status(self, **status_args) -> None:
         self._session.set_status(self._device.dev_id, self._node_info, status_args)
 
     @property
@@ -168,6 +150,45 @@ class SmartboxNode(object):
         _LOGGER.debug(f"Updating node {self.name} away status: {away}")
         self._away = away
 
-    async def async_update(self, hass):
+    async def async_update(
+        self, hass: HomeAssistant
+    ) -> Dict[str, Union[float, str, bool]]:
         _LOGGER.debug("Smartbox node async_update")
         return self._status
+
+
+def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
+    return node.node_type in _HEATER_NODE_TYPES
+
+
+def is_supported_node(node: Union[SmartboxNode, MagicMock]) -> bool:
+    # TODO: add support for 'thm' (thermostat) nodes
+    return is_heater_node(node)
+
+
+async def get_devices(
+    hass: HomeAssistant,
+    api_name: str,
+    basic_auth_creds: str,
+    username: str,
+    password: str,
+) -> List[SmartboxDevice]:
+    session = await hass.async_add_executor_job(
+        Session, api_name, basic_auth_creds, username, password
+    )
+    session_devices = await hass.async_add_executor_job(session.get_devices)
+    # TODO: gather?
+    devices = [
+        await create_smartbox_device(hass, session_device["dev_id"], session)
+        for session_device in session_devices
+    ]
+    return devices
+
+
+async def create_smartbox_device(
+    hass: HomeAssistant, dev_id: str, session: Union[Session, MagicMock]
+) -> Union[SmartboxDevice, MagicMock]:
+    """Factory function for SmartboxDevices"""
+    device = SmartboxDevice(dev_id, session)
+    await device.initialise_nodes(hass)
+    return device

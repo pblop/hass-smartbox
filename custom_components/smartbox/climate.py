@@ -20,11 +20,20 @@ from homeassistant.components.climate.const import (
 
 from .const import DOMAIN, SMARTBOX_NODES
 from .model import is_heater_node
+from custom_components.smartbox.model import SmartboxNode
+from homeassistant.core import HomeAssistant
+from typing import Any, Callable, Dict, List, Optional, Union
+from unittest.mock import MagicMock
 
 _LOGGER = logging.getLogger(__name__)
 
 
-async def async_setup_platform(hass, config, async_add_entities, discovery_info=None):
+async def async_setup_platform(
+    hass: HomeAssistant,
+    config: Dict[Any, Any],
+    async_add_entities: Callable,
+    discovery_info: Optional[Dict[Any, Any]] = None,
+) -> None:
     """Set up platform."""
     _LOGGER.debug("Setting up Smartbox climate platform")
     if discovery_info is None:
@@ -41,7 +50,7 @@ async def async_setup_platform(hass, config, async_add_entities, discovery_info=
     _LOGGER.debug("Finished setting up Smartbox climate platform")
 
 
-def mode_to_hvac_mode(mode):
+def mode_to_hvac_mode(mode: str) -> str:
     if mode == "off":
         return HVAC_MODE_OFF
     elif mode == "manual":
@@ -59,7 +68,7 @@ def mode_to_hvac_mode(mode):
         raise ValueError(f"Unknown smartbox node mode {mode}")
 
 
-def hvac_mode_to_mode(hvac_mode):
+def hvac_mode_to_mode(hvac_mode: str) -> str:
     if hvac_mode == HVAC_MODE_OFF:
         return "off"
     elif hvac_mode == HVAC_MODE_HEAT:
@@ -72,54 +81,54 @@ def hvac_mode_to_mode(hvac_mode):
         raise ValueError(f"Unsupported hvac mode {hvac_mode}")
 
 
-def status_to_hvac_action(status):
+def status_to_hvac_action(status: Dict[str, Union[float, str, bool]]) -> str:
     return CURRENT_HVAC_HEAT if status["active"] else CURRENT_HVAC_IDLE
 
 
 class SmartboxHeater(ClimateEntity):
     """Smartbox heater climate control"""
 
-    def __init__(self, node):
+    def __init__(self, node: Union[MagicMock, SmartboxNode]) -> None:
         """Initialize the sensor."""
         self._node = node
-        self._status = {}
+        self._status: Dict[str, Any] = {}
         self._available = True
         self._supported_features = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
         _LOGGER.debug(f"Created node {self.name} unique_id={self.unique_id}")
 
     @property
-    def unique_id(self):
+    def unique_id(self) -> str:
         """Return Unique ID string."""
         return f"{self._node.node_id}_climate"
 
     @property
-    def name(self):
+    def name(self) -> str:
         """Return the name of the sensor."""
         return self._node.name
 
     @property
-    def supported_features(self):
+    def supported_features(self) -> int:
         """Return the list of supported features."""
         _LOGGER.debug(f"Supported features: {self._supported_features}")
         return self._supported_features
 
     @property
-    def should_poll(self):
+    def should_poll(self) -> bool:
         """Return the polling state."""
         return True
 
     @property
-    def temperature_unit(self):
+    def temperature_unit(self) -> str:
         """Return the unit of measurement."""
         return TEMP_CELSIUS if self._status["units"] == "C" else TEMP_FAHRENHEIT
 
     @property
-    def current_temperature(self):
+    def current_temperature(self) -> float:
         """Return the current temperature."""
         return float(self._status["mtemp"])
 
     @property
-    def target_temperature(self):
+    def target_temperature(self) -> float:
         """Return the target temperature."""
         return float(self._status["stemp"])
 
@@ -130,14 +139,14 @@ class SmartboxHeater(ClimateEntity):
             self._node.set_status(stemp=str(temp), units=self._status["units"])
 
     @property
-    def hvac_action(self):
+    def hvac_action(self) -> str:
         """Return current operation ie. heat or idle."""
         action = status_to_hvac_action(self._status)
         _LOGGER.debug(f"Current HVAC action for {self.name}: {action}")
         return action
 
     @property
-    def hvac_mode(self):
+    def hvac_mode(self) -> str:
         """Return hvac target hvac state."""
         hvac_mode = mode_to_hvac_mode(self._status["mode"])
         _LOGGER.debug(
@@ -146,7 +155,7 @@ class SmartboxHeater(ClimateEntity):
         return hvac_mode
 
     @property
-    def hvac_modes(self):
+    def hvac_modes(self) -> List[str]:
         """Return the list of available operation modes."""
         hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_AUTO, HVAC_MODE_OFF]
         _LOGGER.debug(f"Returning supported HVAC modes {hvac_modes}")
@@ -158,19 +167,19 @@ class SmartboxHeater(ClimateEntity):
         self._node.set_status(mode=hvac_mode_to_mode(hvac_mode))
 
     @property
-    def preset_mode(self):
+    def preset_mode(self) -> str:
         preset_mode = PRESET_AWAY if self._node.away else PRESET_HOME
         _LOGGER.debug(f"Returning preset mode for {self.name}: {preset_mode}")
         return preset_mode
 
     @property
-    def preset_modes(self):
+    def preset_modes(self) -> List[str]:
         preset_modes = [PRESET_AWAY, PRESET_HOME]
         _LOGGER.debug(f"Returning preset modes for {self.name}: {preset_modes}")
         return preset_modes
 
     @property
-    def device_state_attributes(self):
+    def device_state_attributes(self) -> Dict[str, bool]:
         """Return the state attributes of the device."""
         attrs = {
             ATTR_LOCKED: self._status["locked"],
@@ -183,7 +192,7 @@ class SmartboxHeater(ClimateEntity):
         """Return True if roller and hub is available."""
         return self._available
 
-    async def async_update(self):
+    async def async_update(self) -> None:
         _LOGGER.debug("Smartbox climate async_update")
         new_status = await self._node.async_update(self.hass)
         # new_status = self._node.status

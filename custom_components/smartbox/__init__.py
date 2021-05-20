@@ -49,7 +49,7 @@ CONFIG_SCHEMA = vol.Schema(
 PLATFORMS = ["climate", "sensor"]
 
 
-async def async_setup(hass: HomeAssistant, config: dict):
+async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Smartbox component."""
     hass.data.setdefault(DOMAIN, {})
 
