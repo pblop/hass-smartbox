@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.0 (alpha)
+
+### Features
+* Upgrade to smartbox 0.2.0
+* Add mypy type annotations
+
 ## 0.2.2 (alpha)
 
 ### Bug Fixes
