@@ -1,9 +1,9 @@
 with import <nixpkgs> {};
 let
-  python = python38.override {
+  python = python39.override {
     packageOverrides = pySelf: pySuper: {
-      inherit (nur.repos.graham33.python3Packages) homeassistant-stubs monkeytype pytest-homeassistant-custom-component;
-      hass-smartbox = nur.repos.graham33.python3Packages.hass-smartbox.overrideAttrs (o: {
+      inherit (nur.repos.graham33.python39Packages) homeassistant-stubs monkeytype pytest-homeassistant-custom-component;
+      hass-smartbox = nur.repos.graham33.python39Packages.hass-smartbox.overrideAttrs (o: {
         src = ./.;
       });
     };
@@ -25,6 +25,7 @@ let
     pytest-randomly
     pytest-sugar
     tox
+    voluptuous
   ]);
 in mkShell {
   buildInputs = [
