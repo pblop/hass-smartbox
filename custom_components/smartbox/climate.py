@@ -92,7 +92,7 @@ class SmartboxHeater(ClimateEntity):
         """Initialize the sensor."""
         self._node = node
         self._status: Dict[str, Any] = {}
-        self._available = True
+        self._available = False  # unavailable until we get an update
         self._supported_features = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
         _LOGGER.debug(f"Created node {self.name} unique_id={self.unique_id}")
 
