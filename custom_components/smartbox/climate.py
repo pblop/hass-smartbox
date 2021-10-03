@@ -1,11 +1,4 @@
-import logging
-
-from homeassistant.const import (
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
-)
 from homeassistant.components.climate import ClimateEntity
-from homeassistant.const import ATTR_LOCKED, ATTR_TEMPERATURE
 from homeassistant.components.climate.const import (
     CURRENT_HVAC_HEAT,
     CURRENT_HVAC_IDLE,
@@ -17,13 +10,19 @@ from homeassistant.components.climate.const import (
     SUPPORT_PRESET_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
-
-from .const import DOMAIN, SMARTBOX_NODES
-from .model import is_heater_node
-from custom_components.smartbox.model import SmartboxNode
+from homeassistant.const import (
+    ATTR_LOCKED,
+    ATTR_TEMPERATURE,
+    TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
+)
 from homeassistant.core import HomeAssistant
+import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import MagicMock
+
+from .const import DOMAIN, SMARTBOX_NODES
+from .model import is_heater_node, SmartboxNode
 
 _LOGGER = logging.getLogger(__name__)
 
