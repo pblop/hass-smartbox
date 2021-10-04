@@ -12,8 +12,8 @@ from custom_components.smartbox.const import (
     CONF_USERNAME,
     SMARTBOX_DEVICES,
 )
-from .const import MOCK_CONFIG_1, MOCK_CONFIG_2, MOCK_CONFIG_3
-from .mocks import mock_device, mock_node
+from const import MOCK_CONFIG_1, MOCK_CONFIG_2, MOCK_CONFIG_3
+from mocks import mock_device, mock_node
 
 _LOGGER = logging.getLogger(__name__)
 

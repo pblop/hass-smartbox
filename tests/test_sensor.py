@@ -9,7 +9,7 @@ from homeassistant.const import (
 )
 from homeassistant.setup import async_setup_component
 
-from .mocks import convert_temp, get_entity, get_entity_id, get_object_id, get_unique_id
+from mocks import convert_temp, get_entity, get_entity_id, get_object_id, get_unique_id
 
 _LOGGER = logging.getLogger(__name__)
 

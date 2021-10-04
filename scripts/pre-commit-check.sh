@@ -15,7 +15,7 @@ manifest_smartbox_version() {
 }
 
 requirements_smartbox_version() {
-    sed -n -e 's/^.*\(smartbox.git@v[0-9\.]\+\).*$/\1/p' requirements.txt
+    sed -n -e 's/^.*\(smartbox.git@v[0-9\.]\+\).*$/\1/p' requirements_common.txt
 }
 
 if [ $(manifest_version) != $(changelog_version) ]

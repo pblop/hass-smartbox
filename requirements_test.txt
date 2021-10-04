@@ -1,9 +1,12 @@
--r requirements.txt
+-r requirements_common.txt
 black
-# Needs to be tightly coordinated with pytest-homeassistant-custom-component
+coverage
+# The version of homeassistant used for testing needs to be tightly coordinated with
+# pytest-homeassistant-custom-component and homeassistant-stubs
 homeassistant>=2021.9.0b2,<2021.10
-homeassistant-stubs
+homeassistant-stubs>=2021.9.0b2,<2021.10
 flake8
+pytest
 pytest-aiohttp
 pytest-asyncio
 pytest-cov

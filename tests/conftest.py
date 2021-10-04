@@ -1,8 +1,8 @@
 import pytest
 from unittest.mock import patch
 
-from .const import MOCK_CONFIG_3
-from .mocks import MockSmartbox
+from const import MOCK_CONFIG_3
+from mocks import MockSmartbox
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 

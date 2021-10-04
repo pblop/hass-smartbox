@@ -22,7 +22,7 @@ from custom_components.smartbox.model import (
     SmartboxNode,
 )
 
-from .mocks import mock_device, mock_node
+from mocks import mock_device, mock_node
 
 _LOGGER = logging.getLogger(__name__)
 

@@ -33,7 +33,7 @@ from custom_components.smartbox.climate import (
     status_to_hvac_action,
 )
 
-from .mocks import (
+from mocks import (
     convert_temp,
     get_entity,
     get_entity_id,
