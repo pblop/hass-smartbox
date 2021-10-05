@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.4.0 (alpha)
+
+### Bug Fixes
+* Entities should be unavailable until we get an update
+* Fix requirements.txt to only specify homeassistant loosely
+
+### Features
+* Initial support for HACS
+
 ## 0.3.0 (alpha)
 
 ### Features
