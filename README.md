@@ -1,4 +1,4 @@
-# hass-smartbox ![hassfest](https://github.com/graham33/hass-smartbox/workflows/Validate%20with%20hassfest/badge.svg) [![codecov](https://codecov.io/gh/graham33/hass-smartbox/branch/main/graph/badge.svg?token=F3VFCU9WPA)](https://codecov.io/gh/graham33/hass-smartbox)
+# hass-smartbox ![hassfest](https://github.com/graham33/hass-smartbox/workflows/Validate%20with%20hassfest/badge.svg) [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg?style=for-the-badge)](https://github.com/hacs/integration) [![codecov](https://codecov.io/gh/graham33/hass-smartbox/branch/main/graph/badge.svg?token=F3VFCU9WPA)](https://codecov.io/gh/graham33/hass-smartbox)
 Home Assistant integration for heating smartboxes.
 
 
@@ -14,6 +14,10 @@ module should be automatically installed from github via the reference in the
 Then, install the `custom_components/smartbox` directory in this repo to your
 Home Assistant `custom_components` directory. See the [Home Assistant docs] for
 details.
+
+### HACS
+Initial support is available for installation via HACS, as a [custom
+repository].
 
 ## Configuration
 **Note: currently only YAML-based configuration is supported, the UI-based
@@ -64,6 +68,7 @@ See [CHANGELOG.md](./CHANGELOG.md) for release notes.
 * Handle node types other than heater
 * Handle other presets/modes (e.g. boost, eco, window)
 
+[custom repository]: https://hacs.xyz/docs/faq/custom_repositories
 [Home Assistant docs]: https://developers.home-assistant.io/docs/creating_integration_file_structure
 [Home Assistant secrets management]: https://www.home-assistant.io/docs/configuration/secrets/
 [smartbox]: https://github.com/graham33/smartbox
