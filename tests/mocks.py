@@ -65,22 +65,26 @@ def get_entity(hass, platform, unique_id):
 
 
 class MockSmartbox(object):
-    def __init__(self, mock_config, num_nodes=2):
+    def __init__(self, mock_config, num_nodes=2, start_unavailable=False):
         self.config = mock_config
         assert len(mock_config[DOMAIN][CONF_ACCOUNTS]) == 1
         config_dev_ids = mock_config[DOMAIN][CONF_ACCOUNTS][0][CONF_DEVICE_IDS]
         self._devices = list(map(self._get_device, config_dev_ids))
         self._node_info = {
             device["dev_id"]: [
-                self._get_node_info(device["dev_id"], i)
-                for i in range(num_nodes)
+                self._get_node_info(device["dev_id"], i) for i in range(num_nodes)
             ]
             for device in self._devices
         }
         # socket has most up to date status
         self._socket_node_status = {
             device["dev_id"]: [
-                self._get_random_status() for i in range(num_nodes)
+                (
+                    self._get_unavailable_status()
+                    if start_unavailable
+                    else self._get_random_status()
+                )
+                for i in range(num_nodes)
             ]
             for device in self._devices
         }

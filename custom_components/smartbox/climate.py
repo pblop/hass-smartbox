@@ -14,7 +14,6 @@ from homeassistant.const import (
     ATTR_LOCKED,
     ATTR_TEMPERATURE,
     TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
 )
 from homeassistant.core import HomeAssistant
 import logging
@@ -22,7 +21,7 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import MagicMock
 
 from .const import DOMAIN, SMARTBOX_NODES
-from .model import is_heater_node, SmartboxNode
+from .model import get_temperature_unit, is_heater_node, SmartboxNode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -119,7 +118,13 @@ class SmartboxHeater(ClimateEntity):
     @property
     def temperature_unit(self) -> str:
         """Return the unit of measurement."""
-        return TEMP_CELSIUS if self._status["units"] == "C" else TEMP_FAHRENHEIT
+        unit = get_temperature_unit(self._status)
+        if unit is not None:
+            return unit
+        else:
+            return (
+                TEMP_CELSIUS  # climate sensors need a temperature unit on construction
+            )
 
     @property
     def current_temperature(self) -> float:

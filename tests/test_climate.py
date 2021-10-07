@@ -301,3 +301,20 @@ async def test_hvac_action(hass, mock_smartbox):
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
             assert state.attributes[ATTR_HVAC_ACTION] == CURRENT_HVAC_HEAT
+
+
+async def test_unavailable_at_startup(hass, mock_smartbox_unavailable):
+    assert await async_setup_component(
+        hass, "smartbox", mock_smartbox_unavailable.config
+    )
+    await hass.async_block_till_done()
+
+    for mock_device in mock_smartbox_unavailable.session.get_devices():
+        for mock_node in mock_smartbox_unavailable.session.get_nodes(
+            mock_device["dev_id"]
+        ):
+            unique_id = get_unique_id(mock_device, mock_node, "climate")
+            entity_id = get_entity(hass, CLIMATE_DOMAIN, unique_id)
+
+            state = hass.states.get(entity_id)
+            assert state.state == STATE_UNAVAILABLE

@@ -9,7 +9,13 @@ from homeassistant.const import (
 )
 from homeassistant.setup import async_setup_component
 
-from mocks import convert_temp, get_entity, get_entity_id, get_object_id, get_unique_id
+from mocks import (
+    convert_temp,
+    get_entity,
+    get_entity_id,
+    get_object_id,
+    get_unique_id,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -132,3 +138,21 @@ async def test_basic_power(hass, mock_smartbox):
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
             assert state.state != STATE_UNAVAILABLE
+
+
+async def test_unavailable(hass, mock_smartbox_unavailable):
+    assert await async_setup_component(
+        hass, "smartbox", mock_smartbox_unavailable.config
+    )
+    await hass.async_block_till_done()
+
+    for mock_device in mock_smartbox_unavailable.session.get_devices():
+        for mock_node in mock_smartbox_unavailable.session.get_nodes(
+            mock_device["dev_id"]
+        ):
+            for sensor_type in "temperature", "power":
+                unique_id = get_unique_id(mock_device, mock_node, sensor_type)
+                entity_id = get_entity(hass, SENSOR_DOMAIN, unique_id)
+
+                state = hass.states.get(entity_id)
+                assert state.state == STATE_UNAVAILABLE

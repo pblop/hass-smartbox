@@ -2,6 +2,10 @@ import asyncio
 import logging
 import re
 
+from homeassistant.const import (
+    TEMP_CELSIUS,
+    TEMP_FAHRENHEIT,
+)
 from homeassistant.core import HomeAssistant
 from smartbox import Session, SocketSession
 from typing import Any, Dict, List, Union
@@ -164,6 +168,18 @@ def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
 def is_supported_node(node: Union[SmartboxNode, MagicMock]) -> bool:
     # TODO: add support for 'thm' (thermostat) nodes
     return is_heater_node(node)
+
+
+def get_temperature_unit(status):
+    if "units" not in status:
+        return None
+    unit = status["units"]
+    if unit == "C":
+        return TEMP_CELSIUS
+    elif unit == "F":
+        return TEMP_FAHRENHEIT
+    else:
+        raise ValueError(f"Unknown temp unit {unit}")
 
 
 async def get_devices(

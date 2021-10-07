@@ -1,19 +1,17 @@
-from homeassistant.core import HomeAssistant
 from homeassistant.const import (
     ATTR_LOCKED,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_POWER,
     POWER_WATT,
-    TEMP_CELSIUS,
-    TEMP_FAHRENHEIT,
 )
+from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 import logging
 from typing import Any, Callable, Dict, Optional, Union
 from unittest.mock import MagicMock
 
 from .const import DOMAIN, SMARTBOX_NODES
-from .model import is_heater_node, SmartboxNode
+from .model import get_temperature_unit, is_heater_node, SmartboxNode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -100,7 +98,7 @@ class TemperatureSensor(SmartboxSensorBase):
 
     @property
     def unit_of_measurement(self) -> str:
-        return TEMP_CELSIUS if self._status["units"] == "C" else TEMP_FAHRENHEIT
+        return get_temperature_unit(self._status)
 
 
 class PowerSensor(SmartboxSensorBase):
