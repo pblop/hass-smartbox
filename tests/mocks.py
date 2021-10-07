@@ -69,10 +69,10 @@ class MockSmartbox(object):
         self.config = mock_config
         assert len(mock_config[DOMAIN][CONF_ACCOUNTS]) == 1
         config_dev_ids = mock_config[DOMAIN][CONF_ACCOUNTS][0][CONF_DEVICE_IDS]
-        self._devices = list(map(self._mock_smartbox_device, config_dev_ids))
+        self._devices = list(map(self._get_device, config_dev_ids))
         self._node_info = {
             device["dev_id"]: [
-                self._mock_smartbox_node_info(device["dev_id"], i)
+                self._get_node_info(device["dev_id"], i)
                 for i in range(num_nodes)
             ]
             for device in self._devices
@@ -80,29 +80,34 @@ class MockSmartbox(object):
         # socket has most up to date status
         self._socket_node_status = {
             device["dev_id"]: [
-                self._mock_smartbox_node_status() for i in range(num_nodes)
+                self._get_random_status() for i in range(num_nodes)
             ]
             for device in self._devices
         }
         # session status can be stale
         self._session_node_status = self._socket_node_status
 
-        self.session = self._mock_smartbox_session()
+        self.session = self._get_session()
         self.sockets = {}
 
-    def _mock_smartbox_device(self, dev_id):
+    def _get_device(self, dev_id):
         return {
             "dev_id": dev_id,
         }
 
-    def _mock_smartbox_node_info(self, dev_id, addr):
+    def _get_node_info(self, dev_id, addr):
         return {
             "addr": addr,
             "name": f"Test node {dev_id} {addr}",
             "type": random.choice(["htr", "htr_mod"]),
         }
 
-    def _mock_smartbox_node_status(self):
+    def _get_unavailable_status(self):
+        return {
+            "sync_status": "lost",
+        }
+
+    def _get_random_status(self):
         return {
             "mtemp": random.random() * 40,
             "stemp": random.random() * 40,
@@ -114,7 +119,7 @@ class MockSmartbox(object):
             "mode": random.choice(["off", "auto", "manual"]),
         }
 
-    def _mock_smartbox_session(self):
+    def _get_session(self):
         mock_session = MagicMock()
         mock_session.get_devices.return_value = self._devices
 
@@ -169,14 +174,14 @@ class MockSmartbox(object):
     def generate_socket_random_status(self, mock_device, mock_node):
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
-        self._socket_node_status[dev_id][addr] = self._mock_smartbox_node_status()
+        self._socket_node_status[dev_id][addr] = self._get_random_status()
         self._send_socket_update(dev_id, addr)
         return self._socket_node_status[dev_id][addr]
 
     def generate_socket_node_unavailable(self, mock_device, mock_node):
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
-        self._socket_node_status[dev_id][addr] = {"sync_status": "lost"}
+        self._socket_node_status[dev_id][addr] = self._get_unavailable_status()
         self._send_socket_update(dev_id, addr)
         return self._socket_node_status[dev_id][addr]
 
