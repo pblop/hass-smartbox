@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.0 (alpha)
+
+### Bug Fixes
+* Handle temperature units for unavailable nodes
+
 ## 0.4.0 (alpha)
 
 ### Bug Fixes
