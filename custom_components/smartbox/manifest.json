@@ -4,13 +4,13 @@
     "documentation": "https://github.com/graham33/hass-smartbox",
     "issue_tracker": "https://github.com/graham33/hass-smartbox/issues",
     "dependencies": [],
-    "version": "0.5.0",
+    "version": "0.5.1",
     "config_flow": false,
     "codeowners": [
         "@graham33"
     ],
     "requirements": [
-        "smartbox @ git+https://github.com/graham33/smartbox.git@v0.2.0"
+        "smartbox @ git+https://github.com/graham33/smartbox.git@v0.2.1"
     ],
     "iot_class": "cloud_polling"
 }

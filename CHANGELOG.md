@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.5.1 (alpha)
+
+### Features
+* Upgrade to smartbox 0.2.1 to pick up auth error handling improvement
+
 ## 0.5.0 (alpha)
 
 ### Bug Fixes
