@@ -4,6 +4,9 @@ from homeassistant.const import (
     DEVICE_CLASS_POWER,
     POWER_WATT,
 )
+from homeassistant.components.sensor import (
+    STATE_CLASS_MEASUREMENT,
+)
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity import Entity
 import logging
@@ -103,8 +106,9 @@ class TemperatureSensor(SmartboxSensorBase):
 
 class PowerSensor(SmartboxSensorBase):
     """Smartbox heater power sensor"""
-
+    native_unit_of_measurement=POWER_WATT
     device_class = DEVICE_CLASS_POWER
+    state_class = STATE_CLASS_MEASUREMENT
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         super().__init__(node)
