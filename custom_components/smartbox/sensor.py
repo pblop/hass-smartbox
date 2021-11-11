@@ -5,10 +5,10 @@ from homeassistant.const import (
     POWER_WATT,
 )
 from homeassistant.components.sensor import (
+    SensorEntity,
     STATE_CLASS_MEASUREMENT,
 )
 from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import Entity
 import logging
 from typing import Any, Callable, Dict, Optional, Union
 from unittest.mock import MagicMock
@@ -50,7 +50,7 @@ async def async_setup_platform(
     _LOGGER.debug("Finished setting up Smartbox sensor platform")
 
 
-class SmartboxSensorBase(Entity):
+class SmartboxSensorBase(SensorEntity):
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         self._node = node
         self._status: Dict[str, Any] = {}
@@ -87,6 +87,7 @@ class TemperatureSensor(SmartboxSensorBase):
     """Smartbox heater temperature sensor"""
 
     device_class = DEVICE_CLASS_TEMPERATURE
+    state_class = STATE_CLASS_MEASUREMENT
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         super().__init__(node)
@@ -96,18 +97,19 @@ class TemperatureSensor(SmartboxSensorBase):
         return f"{self._node.node_id}_temperature"
 
     @property
-    def state(self) -> float:
+    def native_value(self) -> float:
         return self._status["mtemp"]
 
     @property
-    def unit_of_measurement(self) -> str:
+    def native_unit_of_measurement(self) -> str:
         return get_temperature_unit(self._status)
 
 
 class PowerSensor(SmartboxSensorBase):
     """Smartbox heater power sensor"""
-    native_unit_of_measurement=POWER_WATT
+
     device_class = DEVICE_CLASS_POWER
+    native_unit_of_measurement = POWER_WATT
     state_class = STATE_CLASS_MEASUREMENT
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
@@ -118,12 +120,8 @@ class PowerSensor(SmartboxSensorBase):
         return f"{self._node.node_id}_power"
 
     @property
-    def state(self) -> Union[float, int]:
+    def native_value(self) -> Union[float, int]:
         # TODO: is this correct? The heater seems to report power usage all the
         # time otherwise, which doesn't make sense and doesn't tally with the
         # graphs in the vendor app UI
         return self._status["power"] if self._status["active"] else 0
-
-    @property
-    def unit_of_measurement(self) -> str:
-        return POWER_WATT
