@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.6.0 (alpha)
+
+### Features
+* Switch to SensorEntity and use MEASUREMENT state class (thanks @ajtudela)
+
 ## 0.5.1 (alpha)
 
 ### Features
