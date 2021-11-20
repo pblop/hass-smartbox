@@ -1,14 +1,31 @@
-with import <nixpkgs> {};
-let
-  python = python39.override {
-    packageOverrides = pySelf: pySuper: {
-      inherit (nur.repos.graham33.python39Packages) homeassistant-stubs monkeytype pytest-homeassistant-custom-component;
-      hass-smartbox = nur.repos.graham33.python39Packages.hass-smartbox.overrideAttrs (o: {
-        src = ./.;
+with import <nixpkgs> {
+  overlays = [
+    (self: super: {
+      pythonOverrides = pySelf: pySuper: {
+        inherit (super.nur.repos.graham33.python39Packages)
+          hass-smartbox smartbox homeassistant-stubs monkeytype pytest-homeassistant-custom-component;
+      };
+    })
+    (self: super: rec {
+      pythonOverrides = self.lib.composeExtensions super.pythonOverrides (pySelf: pySuper: rec {
+        smartbox = pySuper.smartbox.overridePythonAttrs (o: {
+          src = ../smartbox;
+        });
+        hass-smartbox = (pySuper.hass-smartbox.override {
+          inherit smartbox;
+        }).overridePythonAttrs (o: {
+          src = ./.;
+        });
       });
-    };
-  };
-  pythonEnv = python.withPackages (ps: with ps; [
+      python39 = super.python39.override {
+        self = python39;
+        packageOverrides = pythonOverrides;
+      };
+    })
+  ];
+};
+let
+  pythonEnv = python39.withPackages (ps: with ps; [
     flake8
     hass-smartbox
     # TODO: duplicating checkInputs from hass-smartbox
