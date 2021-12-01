@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.0 (alpha)
+
+### Features
+* Upgrade to Smartbox 0.3.0 to get retry and reconnect functionality
+
 ## 0.6.0 (alpha)
 
 ### Features
