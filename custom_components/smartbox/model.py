@@ -158,7 +158,7 @@ class SmartboxNode(object):
         self, hass: HomeAssistant
     ) -> Dict[str, Union[float, str, bool]]:
         _LOGGER.debug("Smartbox node async_update")
-        return self._status
+        return self.status
 
 
 def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
