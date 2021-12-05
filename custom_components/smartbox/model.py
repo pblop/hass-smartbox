@@ -144,6 +144,9 @@ class SmartboxNode(object):
 
     def set_status(self, **status_args) -> None:
         self._session.set_status(self._device.dev_id, self._node_info, status_args)
+        # update our status locally until we get an update
+        self._status |= {**status_args}
+        return self._status
 
     @property
     def away(self):
