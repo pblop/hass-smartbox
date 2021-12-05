@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.8.0 (alpha)
+
+### Features
+* Update node status locally until we get an update
+* Upgrade to smartbox 0.4.0
+* Make smartbox session and socket retry configurable via config options:
+  * `session_retry_attempts`: how many times to retry session REST operations
+    (default 8)
+  * `session_backoff_factor`: how much to backoff between REST retries (default
+    0.1)
+  * `socket_reconnect_attempts`: how many times to try reconnecting the
+    socket.io socket (default 3)
+* Rename device_state_attributes to extra_state_attributes (required for
+  home-assistant 2021.12)
+
 ## 0.7.0 (alpha)
 
 ### Features
