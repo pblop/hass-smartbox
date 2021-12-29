@@ -5,6 +5,8 @@ Home Assistant integration for heating smartboxes.
 **Note: this is very much a work in progress**, a lot of functionality is
 missing or not fully working!
 
+See [CHANGELOG.md](./CHANGELOG.md) for release notes.
+
 ## Installation
 This integration uses the [smartbox] Python module, so make sure to install that
 into your Home Assistant python environment first. If you are using hass.io, the
@@ -58,7 +60,17 @@ access token. In order not to undermine the security layer it provides, and also
 because it might change over time or vary between implementations, **the token
 is not provided here and system owners need to find it themselves**.
 
-See [CHANGELOG.md](./CHANGELOG.md) for release notes.
+### Additional Options
+You can also specify the following options (although they have reasonable defaults):
+
+```
+smartbox:
+  accounts:
+  - ...
+    session_retry_attempts: 8 # how many times to retry session REST operations
+    session_backoff_factor: 0.1 # how much to backoff between REST retries
+    socket_reconnect_attempts: 3 # how many times to try reconnecting the socket.io socket
+```
 
 ## TODO
 * config_flow (only configured via yaml atm)

@@ -11,10 +11,16 @@ from .const import (
     DOMAIN,
     CONF_ACCOUNTS,
     CONF_API_NAME,
+    CONF_SESSION_BACKOFF_FACTOR,
     CONF_BASIC_AUTH_CREDS,
     CONF_DEVICE_IDS,
     CONF_PASSWORD,
+    CONF_SESSION_RETRY_ATTEMPTS,
+    CONF_SOCKET_RECONNECT_ATTEMPTS,
     CONF_USERNAME,
+    DEFAULT_SESSION_RETRY_ATTEMPTS,
+    DEFAULT_SESSION_BACKOFF_FACTOR,
+    DEFAULT_SOCKET_RECONNECT_ATTEMPTS,
     SMARTBOX_DEVICES,
     SMARTBOX_NODES,
 )
@@ -31,6 +37,15 @@ ACCOUNT_SCHEMA = vol.Schema(
         vol.Required(CONF_USERNAME): cv.string,
         vol.Required(CONF_PASSWORD): cv.string,
         vol.Required(CONF_DEVICE_IDS): DEVICE_IDS_SCHEMA,
+        vol.Required(
+            CONF_SESSION_RETRY_ATTEMPTS, default=DEFAULT_SESSION_RETRY_ATTEMPTS
+        ): cv.positive_int,
+        vol.Required(
+            CONF_SESSION_BACKOFF_FACTOR, default=DEFAULT_SESSION_BACKOFF_FACTOR
+        ): cv.small_float,
+        vol.Required(
+            CONF_SOCKET_RECONNECT_ATTEMPTS, default=DEFAULT_SOCKET_RECONNECT_ATTEMPTS
+        ): cv.positive_int,
     }
 )
 
@@ -70,6 +85,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
             basic_auth_creds,
             account[CONF_USERNAME],
             account[CONF_PASSWORD],
+            account[CONF_SESSION_RETRY_ATTEMPTS],
+            account[CONF_SESSION_BACKOFF_FACTOR],
+            account[CONF_SOCKET_RECONNECT_ATTEMPTS],
         )
 
         found_dev_ids = frozenset(dev.dev_id for dev in devices)

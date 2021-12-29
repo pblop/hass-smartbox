@@ -23,9 +23,15 @@ _HEATER_NODE_TYPES = ["htr", "htr_mod"]
 
 
 class SmartboxDevice(object):
-    def __init__(self, dev_id: str, session: Union[Session, MagicMock]) -> None:
+    def __init__(
+        self,
+        dev_id: str,
+        session: Union[Session, MagicMock],
+        socket_reconnect_attempts: int,
+    ) -> None:
         self._dev_id = dev_id
         self._session = session
+        self._socket_reconnect_attempts = socket_reconnect_attempts
 
     async def initialise_nodes(self, hass: HomeAssistant) -> None:
         # Would do in __init__, but needs to be a coroutine
@@ -46,6 +52,7 @@ class SmartboxDevice(object):
             self._dev_id,
             lambda data: self.on_dev_data(data),
             lambda data: self.on_update(data),
+            reconnect_attempts=self._socket_reconnect_attempts,
         )
 
         _LOGGER.debug(f"Starting SocketSession task for device {self._dev_id}")
@@ -191,23 +198,38 @@ async def get_devices(
     basic_auth_creds: str,
     username: str,
     password: str,
+    session_retry_attempts: int,
+    session_backoff_factor: float,
+    socket_reconnect_attempts: int,
 ) -> List[SmartboxDevice]:
+    _LOGGER.info(f"Creating Smartbox session for {api_name} (session_retry_attempts={session_retry_attempts}, session_backoff_factor={session_backoff_factor}, socket_reconnect_attempts={socket_reconnect_attempts})")
     session = await hass.async_add_executor_job(
-        Session, api_name, basic_auth_creds, username, password
+        Session,
+        api_name,
+        basic_auth_creds,
+        username,
+        password,
+        session_retry_attempts,
+        session_backoff_factor,
     )
     session_devices = await hass.async_add_executor_job(session.get_devices)
     # TODO: gather?
     devices = [
-        await create_smartbox_device(hass, session_device["dev_id"], session)
+        await create_smartbox_device(
+            hass, session_device["dev_id"], session, socket_reconnect_attempts
+        )
         for session_device in session_devices
     ]
     return devices
 
 
 async def create_smartbox_device(
-    hass: HomeAssistant, dev_id: str, session: Union[Session, MagicMock]
+    hass: HomeAssistant,
+    dev_id: str,
+    session: Union[Session, MagicMock],
+    socket_reconnect_attempts: int,
 ) -> Union[SmartboxDevice, MagicMock]:
     """Factory function for SmartboxDevices"""
-    device = SmartboxDevice(dev_id, session)
+    device = SmartboxDevice(dev_id, session, socket_reconnect_attempts)
     await device.initialise_nodes(hass)
     return device
