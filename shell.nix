@@ -9,9 +9,10 @@ with import <nixpkgs> {
         smartbox = pySuper.smartbox.overridePythonAttrs (o: {
           src = ../smartbox;
         });
-        hass-smartbox = (pySuper.hass-smartbox.override {
-          inherit smartbox;
-        }).overridePythonAttrs (o: {
+
+        hass-smartbox = (super.nur.repos.graham33.hass-smartbox.override {
+          inherit home-assistant;
+        }).overrideAttrs (o: {
           src = ./.;
         });
       });
