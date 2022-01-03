@@ -183,13 +183,11 @@ class SmartboxHeater(ClimateEntity):
         return preset_modes
 
     @property
-    def device_state_attributes(self) -> Dict[str, bool]:
+    def extra_state_attributes(self) -> Dict[str, bool]:
         """Return the state attributes of the device."""
-        attrs = {
+        return {
             ATTR_LOCKED: self._status["locked"],
         }
-        _LOGGER.debug(f"Device state attributes: {attrs}")
-        return attrs
 
     @property
     def available(self) -> bool:

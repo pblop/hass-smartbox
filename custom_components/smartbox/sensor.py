@@ -62,7 +62,7 @@ class SmartboxSensorBase(SensorEntity):
         return self._node.name
 
     @property
-    def device_state_attributes(self) -> Dict[str, bool]:
+    def extra_state_attributes(self) -> Dict[str, bool]:
         return {
             ATTR_LOCKED: self._status["locked"],
         }

@@ -202,7 +202,9 @@ async def get_devices(
     session_backoff_factor: float,
     socket_reconnect_attempts: int,
 ) -> List[SmartboxDevice]:
-    _LOGGER.info(f"Creating Smartbox session for {api_name} (session_retry_attempts={session_retry_attempts}, session_backoff_factor={session_backoff_factor}, socket_reconnect_attempts={socket_reconnect_attempts})")
+    _LOGGER.info(
+        f"Creating Smartbox session for {api_name} (session_retry_attempts={session_retry_attempts}, session_backoff_factor={session_backoff_factor}, socket_reconnect_attempts={socket_reconnect_attempts})"
+    )
     session = await hass.async_add_executor_job(
         Session,
         api_name,
