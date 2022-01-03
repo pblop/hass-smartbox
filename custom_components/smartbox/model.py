@@ -149,7 +149,7 @@ class SmartboxNode(object):
         _LOGGER.debug(f"Updating node {self.name} status: {status}")
         self._status = status
 
-    def set_status(self, **status_args) -> None:
+    def set_status(self, **status_args) -> Dict[str, Union[float, str, bool]]:
         self._session.set_status(self._device.dev_id, self._node_info, status_args)
         # update our status locally until we get an update
         self._status |= {**status_args}
@@ -203,7 +203,10 @@ async def get_devices(
     socket_reconnect_attempts: int,
 ) -> List[SmartboxDevice]:
     _LOGGER.info(
-        f"Creating Smartbox session for {api_name} (session_retry_attempts={session_retry_attempts}, session_backoff_factor={session_backoff_factor}, socket_reconnect_attempts={socket_reconnect_attempts})"
+        f"Creating Smartbox session for {api_name}"
+        f"(session_retry_attempts={session_retry_attempts}"
+        f", session_backoff_factor={session_backoff_factor}"
+        f", socket_reconnect_attempts={socket_reconnect_attempts})"
     )
     session = await hass.async_add_executor_job(
         Session,
