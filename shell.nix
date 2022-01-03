@@ -9,12 +9,6 @@ with import <nixpkgs> {
         smartbox = pySuper.smartbox.overridePythonAttrs (o: {
           src = ../smartbox;
         });
-
-        hass-smartbox = (super.nur.repos.graham33.hass-smartbox.override {
-          inherit home-assistant;
-        }).overrideAttrs (o: {
-          src = ./.;
-        });
       });
     })
   ];
@@ -22,7 +16,6 @@ with import <nixpkgs> {
 let
   pythonEnv = home-assistant.python.withPackages (ps: with ps; [
     flake8
-    hass-smartbox
     # TODO: duplicating checkInputs from hass-smartbox
     homeassistant-stubs
     monkeytype
@@ -36,6 +29,7 @@ let
     pytest-mypy
     pytest-randomly
     pytest-sugar
+    smartbox
     tox
     voluptuous
   ]);
