@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.8.1 (alpha)
+
+### Features
+* Include git commit sha in requirements direct references
+
 ## 0.8.0 (alpha)
 
 ### Features
