@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.9.0 (alpha)
+
+### Features
+* Upgrade to smartbox 0.5.4, and source it from PyPI rather than Github
+
 ## 0.8.1 (alpha)
 
 ### Features
