@@ -11,11 +11,11 @@ changelog_version() {
 }
 
 manifest_smartbox_version() {
-    sed -n -e 's/^.*\(smartbox.git@v[0-9\.]\+\).*$/\1/p' custom_components/smartbox/manifest.json
+    sed -n -e 's/^.*\(smartbox==[0-9\.]\+\).*$/\1/p' custom_components/smartbox/manifest.json
 }
 
 requirements_smartbox_version() {
-    sed -n -e 's/^.*\(smartbox.git@v[0-9\.]\+\).*$/\1/p' requirements_common.txt
+    sed -n -e 's/^.*\(smartbox==[0-9\.]\+\).*$/\1/p' requirements_common.txt
 }
 
 if [ $(manifest_version) != $(changelog_version) ]

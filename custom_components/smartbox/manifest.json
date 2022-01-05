@@ -10,7 +10,7 @@
         "@graham33"
     ],
     "requirements": [
-        "smartbox @ git+https://github.com/graham33/smartbox.git@v0.4.0#f7deaf85b50f0821fba265aaf54319e03cf86dbc"
+        "smartbox==0.5.4"
     ],
     "iot_class": "cloud_polling"
 }
