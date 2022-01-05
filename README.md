@@ -72,6 +72,22 @@ smartbox:
     socket_reconnect_attempts: 3 # how many times to try reconnecting the socket.io socket
 ```
 
+### Use in energy dashboard
+
+To use the values in the Energy dashboard of Home Assistant, you have to aggregate the power sensors into energy sensors via an integration (https://www.home-assistant.io/integrations/integration/#energy)
+
+```
+sensor:
+  - platform: integration
+    source: sensor.living_room
+    name: energy_living_room
+    unit_prefix: k
+    round: 2
+```
+    
+The resulting sensor 'sensor.energy_living_room' can then be added to the Energy dashboard as soon as it has values.
+    
+    
 ## TODO
 * config_flow (only configured via yaml atm)
 * Support device grouping
