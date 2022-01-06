@@ -83,6 +83,7 @@ sensor:
     name: energy_living_room
     unit_prefix: k
     round: 2
+    method: left
 ```
     
 The resulting sensor 'sensor.energy_living_room' can then be added to the Energy dashboard as soon as it has values.
