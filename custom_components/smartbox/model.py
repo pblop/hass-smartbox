@@ -28,10 +28,12 @@ class SmartboxDevice(object):
         dev_id: str,
         session: Union[Session, MagicMock],
         socket_reconnect_attempts: int,
+        socket_backoff_factor: float,
     ) -> None:
         self._dev_id = dev_id
         self._session = session
         self._socket_reconnect_attempts = socket_reconnect_attempts
+        self._socket_backoff_factor = socket_backoff_factor
 
     async def initialise_nodes(self, hass: HomeAssistant) -> None:
         # Would do in __init__, but needs to be a coroutine
@@ -53,6 +55,7 @@ class SmartboxDevice(object):
             lambda data: self.on_dev_data(data),
             lambda data: self.on_update(data),
             reconnect_attempts=self._socket_reconnect_attempts,
+            backoff_factor=self._socket_backoff_factor,
         )
 
         _LOGGER.debug(f"Starting SocketSession task for device {self._dev_id}")
@@ -201,12 +204,14 @@ async def get_devices(
     session_retry_attempts: int,
     session_backoff_factor: float,
     socket_reconnect_attempts: int,
+    socket_backoff_factor: float,
 ) -> List[SmartboxDevice]:
     _LOGGER.info(
         f"Creating Smartbox session for {api_name}"
         f"(session_retry_attempts={session_retry_attempts}"
         f", session_backoff_factor={session_backoff_factor}"
-        f", socket_reconnect_attempts={socket_reconnect_attempts})"
+        f", socket_reconnect_attempts={socket_reconnect_attempts}"
+        f", socket_backoff_factor={session_backoff_factor})"
     )
     session = await hass.async_add_executor_job(
         Session,
@@ -221,7 +226,11 @@ async def get_devices(
     # TODO: gather?
     devices = [
         await create_smartbox_device(
-            hass, session_device["dev_id"], session, socket_reconnect_attempts
+            hass,
+            session_device["dev_id"],
+            session,
+            socket_reconnect_attempts,
+            socket_backoff_factor,
         )
         for session_device in session_devices
     ]
@@ -233,8 +242,11 @@ async def create_smartbox_device(
     dev_id: str,
     session: Union[Session, MagicMock],
     socket_reconnect_attempts: int,
+    socket_backoff_factor: float,
 ) -> Union[SmartboxDevice, MagicMock]:
     """Factory function for SmartboxDevices"""
-    device = SmartboxDevice(dev_id, session, socket_reconnect_attempts)
+    device = SmartboxDevice(
+        dev_id, session, socket_reconnect_attempts, socket_backoff_factor
+    )
     await device.initialise_nodes(hass)
     return device

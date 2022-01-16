@@ -146,7 +146,13 @@ class MockSmartbox(object):
         return mock_session
 
     def get_mock_socket(
-        self, session, dev_id, on_dev_data, on_update, reconnect_attempts
+        self,
+        session,
+        dev_id,
+        on_dev_data,
+        on_update,
+        reconnect_attempts,
+        backoff_factor,
     ):
         assert session == self.session
         mock_socket = MagicMock()

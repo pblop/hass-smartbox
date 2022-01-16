@@ -16,6 +16,7 @@ from custom_components.smartbox.const import (
     CONF_SESSION_RETRY_ATTEMPTS,
     CONF_SESSION_BACKOFF_FACTOR,
     CONF_SOCKET_RECONNECT_ATTEMPTS,
+    CONF_SOCKET_BACKOFF_FACTOR,
     SMARTBOX_DEVICES,
 )
 from const import MOCK_CONFIG_1, MOCK_CONFIG_2, MOCK_CONFIG_3
@@ -46,6 +47,7 @@ async def test_setup_basic(hass, caplog):
             MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
             MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
             MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
 
@@ -88,6 +90,7 @@ async def test_setup_multiple_accounts_and_devices(hass):
             MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
             MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
             MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
         # second account
         get_devices_mock.assert_any_await(
@@ -99,6 +102,7 @@ async def test_setup_multiple_accounts_and_devices(hass):
             MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SESSION_RETRY_ATTEMPTS],
             MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SESSION_BACKOFF_FACTOR],
             MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SOCKET_BACKOFF_FACTOR],
         )
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
     assert mock_dev_2_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
@@ -133,6 +137,7 @@ async def test_setup_missing_and_extra_devices(hass, caplog):
             MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
             MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
             MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
     assert mock_dev_3 not in hass.data[DOMAIN][SMARTBOX_DEVICES]
@@ -170,6 +175,7 @@ async def test_setup_unsupported_nodes(hass, caplog):
             MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
             MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
             MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
     assert (
         "custom_components.smartbox",

@@ -70,6 +70,7 @@ smartbox:
     session_retry_attempts: 8 # how many times to retry session REST operations
     session_backoff_factor: 0.1 # how much to backoff between REST retries
     socket_reconnect_attempts: 3 # how many times to try reconnecting the socket.io socket
+    socket_backoff_factor: 0.1 # how much to backoff between initial socket connect attempts
 ```
 
 ### Use in energy dashboard

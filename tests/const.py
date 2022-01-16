@@ -9,6 +9,7 @@ from custom_components.smartbox.const import (
     CONF_SESSION_RETRY_ATTEMPTS,
     CONF_SESSION_BACKOFF_FACTOR,
     CONF_SOCKET_RECONNECT_ATTEMPTS,
+    CONF_SOCKET_BACKOFF_FACTOR,
 )
 
 MOCK_CONFIG_1 = {
@@ -22,6 +23,7 @@ MOCK_CONFIG_1 = {
                 CONF_SESSION_RETRY_ATTEMPTS: 4,
                 CONF_SESSION_BACKOFF_FACTOR: 0.1,
                 CONF_SOCKET_RECONNECT_ATTEMPTS: 3,
+                CONF_SOCKET_BACKOFF_FACTOR: 0.2,
             },
         ],
         CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
@@ -39,6 +41,7 @@ MOCK_CONFIG_2 = {
                 CONF_SESSION_RETRY_ATTEMPTS: 5,
                 CONF_SESSION_BACKOFF_FACTOR: 0.2,
                 CONF_SOCKET_RECONNECT_ATTEMPTS: 4,
+                CONF_SOCKET_BACKOFF_FACTOR: 0.3,
             },
             {
                 CONF_API_NAME: "test_api_name_2",
@@ -48,6 +51,7 @@ MOCK_CONFIG_2 = {
                 CONF_SESSION_RETRY_ATTEMPTS: 6,
                 CONF_SESSION_BACKOFF_FACTOR: 0.3,
                 CONF_SOCKET_RECONNECT_ATTEMPTS: 5,
+                CONF_SOCKET_BACKOFF_FACTOR: 0.4,
             },
         ],
         CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
@@ -65,6 +69,7 @@ MOCK_CONFIG_3 = {
                 CONF_SESSION_RETRY_ATTEMPTS: 7,
                 CONF_SESSION_BACKOFF_FACTOR: 0.4,
                 CONF_SOCKET_RECONNECT_ATTEMPTS: 6,
+                CONF_SOCKET_BACKOFF_FACTOR: 0.5,
             },
         ],
         CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
