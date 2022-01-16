@@ -7,6 +7,8 @@ import homeassistant.helpers.config_validation as cv
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
 
+from smartbox import __version__ as SMARTBOX_VERSION
+
 from .const import (
     DOMAIN,
     CONF_ACCOUNTS,
@@ -70,7 +72,9 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     """Set up the Smartbox component."""
     hass.data.setdefault(DOMAIN, {})
 
-    _LOGGER.debug("Setting up Smartbox integration")
+    _LOGGER.info(
+        f"Setting up Smartbox integration v{__version__} (using smartbox v{SMARTBOX_VERSION})"
+    )
 
     accounts_cfg = config[DOMAIN][CONF_ACCOUNTS]
     _LOGGER.debug(f"accounts: {accounts_cfg}")

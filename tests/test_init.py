@@ -3,6 +3,9 @@ from unittest.mock import patch
 
 from homeassistant.setup import async_setup_component
 
+from smartbox import __version__ as SMARTBOX_VERSION
+
+from custom_components.smartbox import __version__
 from custom_components.smartbox.const import (
     DOMAIN,
     CONF_ACCOUNTS,
@@ -21,7 +24,7 @@ from mocks import mock_device, mock_node
 _LOGGER = logging.getLogger(__name__)
 
 
-async def test_setup_basic(hass):
+async def test_setup_basic(hass, caplog):
     dev_1_id = "test_device_id_1"
     mock_node_1 = mock_node(dev_1_id, 1)
     mock_node_2 = mock_node(dev_1_id, 2)
@@ -45,6 +48,13 @@ async def test_setup_basic(hass):
             MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
         )
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
+
+    assert (
+        "custom_components.smartbox",
+        logging.INFO,
+        f"Setting up Smartbox integration v{__version__}"
+        f" (using smartbox v{SMARTBOX_VERSION})",
+    ) in caplog.record_tuples
 
 
 async def test_setup_multiple_accounts_and_devices(hass):
