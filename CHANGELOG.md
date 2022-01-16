@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.0 (alpha)
+
+### Features
+* Upgrade to smartbox 0.7.0 to pick up initial connection retry logic
+  * Added `socket_backoff_factor`: how much to backoff between initial connect
+    attempts (default 0.1)
+* Log the version of the integration and smartbox on setup
+
 ## 0.9.0 (alpha)
 
 ### Features
