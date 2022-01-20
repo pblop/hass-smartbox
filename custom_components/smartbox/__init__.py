@@ -30,7 +30,7 @@ from .const import (
 )
 from .model import get_devices, is_supported_node
 
-__version__ = "0.10.0"
+__version__ = "0.10.1"
 
 _LOGGER = logging.getLogger(__name__)
 

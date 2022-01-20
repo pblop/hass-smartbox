@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.10.1 (alpha)
+
+### Features
+* Upgrade to smartbox 0.7.1 to pick up connection retry and logging improvements
+* Remove unnecessary logging
+
 ## 0.10.0 (alpha)
 
 ### Features
