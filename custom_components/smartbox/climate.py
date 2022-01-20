@@ -107,7 +107,6 @@ class SmartboxHeater(ClimateEntity):
     @property
     def supported_features(self) -> int:
         """Return the list of supported features."""
-        _LOGGER.debug(f"Supported features: {self._supported_features}")
         return self._supported_features
 
     @property
@@ -146,23 +145,18 @@ class SmartboxHeater(ClimateEntity):
     def hvac_action(self) -> str:
         """Return current operation ie. heat or idle."""
         action = status_to_hvac_action(self._status)
-        _LOGGER.debug(f"Current HVAC action for {self.name}: {action}")
         return action
 
     @property
     def hvac_mode(self) -> str:
         """Return hvac target hvac state."""
         hvac_mode = mode_to_hvac_mode(self._status["mode"])
-        _LOGGER.debug(
-            f"Returning HVAC mode for {self.name}: {hvac_mode} from mode {self._status['mode']}"
-        )
         return hvac_mode
 
     @property
     def hvac_modes(self) -> List[str]:
         """Return the list of available operation modes."""
         hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_AUTO, HVAC_MODE_OFF]
-        _LOGGER.debug(f"Returning supported HVAC modes {hvac_modes}")
         return hvac_modes
 
     def set_hvac_mode(self, hvac_mode):
@@ -173,13 +167,11 @@ class SmartboxHeater(ClimateEntity):
     @property
     def preset_mode(self) -> str:
         preset_mode = PRESET_AWAY if self._node.away else PRESET_HOME
-        _LOGGER.debug(f"Returning preset mode for {self.name}: {preset_mode}")
         return preset_mode
 
     @property
     def preset_modes(self) -> List[str]:
         preset_modes = [PRESET_AWAY, PRESET_HOME]
-        _LOGGER.debug(f"Returning preset modes for {self.name}: {preset_modes}")
         return preset_modes
 
     @property
@@ -195,7 +187,6 @@ class SmartboxHeater(ClimateEntity):
         return self._available
 
     async def async_update(self) -> None:
-        _LOGGER.debug("Smartbox climate async_update")
         new_status = await self._node.async_update(self.hass)
         if new_status["sync_status"] == "ok":
             # update our status

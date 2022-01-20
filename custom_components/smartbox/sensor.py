@@ -72,7 +72,6 @@ class SmartboxSensorBase(SensorEntity):
         return self._available
 
     async def async_update(self) -> None:
-        _LOGGER.debug("Smartbox sensor async_update")
         new_status = await self._node.async_update(self.hass)
         if new_status["sync_status"] == "ok":
             # update our status

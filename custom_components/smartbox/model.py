@@ -170,7 +170,6 @@ class SmartboxNode(object):
     async def async_update(
         self, hass: HomeAssistant
     ) -> Dict[str, Union[float, str, bool]]:
-        _LOGGER.debug("Smartbox node async_update")
         return self.status
 
 
