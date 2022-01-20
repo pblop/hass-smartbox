@@ -10,7 +10,7 @@
         "@graham33"
     ],
     "requirements": [
-        "smartbox==0.7.0"
+        "smartbox==0.7.1"
     ],
     "iot_class": "cloud_polling"
 }
