@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.10.2 (alpha)
+
+### Features
+* Upgrade to smartbox 0.7.2 to pick up disconnection logic fix
+
 ## 0.10.1 (alpha)
 
 ### Features
