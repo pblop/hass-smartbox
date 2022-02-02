@@ -1,4 +1,5 @@
 {
     "name": "Smartbox",
     "domains": ["climate", "sensor"],
+    "render_readme": true,
 }
