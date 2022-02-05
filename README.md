@@ -1,12 +1,6 @@
 # hass-smartbox ![hassfest](https://github.com/graham33/hass-smartbox/workflows/Validate%20with%20hassfest/badge.svg) [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration) [![codecov](https://codecov.io/gh/graham33/hass-smartbox/branch/main/graph/badge.svg?token=F3VFCU9WPA)](https://codecov.io/gh/graham33/hass-smartbox)
 Home Assistant integration for heating smartboxes.
 
-
-**Note: this is very much a work in progress**, a lot of functionality is
-missing or not fully working!
-
-See [CHANGELOG.md](./CHANGELOG.md) for release notes.
-
 ## Installation
 This integration uses the [smartbox] Python module, so make sure to install that
 into your Home Assistant python environment first. If you are using hass.io, the
