@@ -22,7 +22,6 @@ let
     mypy
     pytest
     pytest-aiohttp
-    pytest-asyncio
     pytest-cov
     pytest-flake8
     pytest-homeassistant-custom-component
