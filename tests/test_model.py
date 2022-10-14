@@ -276,6 +276,7 @@ def test_is_heater_node():
     addr = 1
     assert is_heater_node(mock_node(dev_id, addr, "htr"))
     assert is_heater_node(mock_node(dev_id, addr, "htr_mod"))
+    assert is_heater_node(mock_node(dev_id, addr, "acm"))
     assert not is_heater_node(mock_node(dev_id, addr, "thm"))
     assert not is_heater_node(mock_node(dev_id, addr, "sldkfjsd"))
 
@@ -285,5 +286,6 @@ def test_is_supported_node():
     addr = 1
     assert is_supported_node(mock_node(dev_id, addr, "htr"))
     assert is_supported_node(mock_node(dev_id, addr, "htr_mod"))
+    assert is_supported_node(mock_node(dev_id, addr, "acm"))
     assert not is_supported_node(mock_node(dev_id, addr, "thm"))
     assert not is_supported_node(mock_node(dev_id, addr, "oijijr"))

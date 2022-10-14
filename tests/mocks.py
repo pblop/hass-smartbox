@@ -103,7 +103,8 @@ class MockSmartbox(object):
         return {
             "addr": addr,
             "name": f"Test node {dev_id} {addr}",
-            "type": random.choice(["htr", "htr_mod"]),
+            # TODO: tests should be deterministic
+            "type": random.choice(["htr", "htr_mod", "acm"]),
         }
 
     def _get_unavailable_status(self):

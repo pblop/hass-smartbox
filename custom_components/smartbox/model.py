@@ -19,7 +19,7 @@ _MESSAGE_SKIP_RE = re.compile(
     r"^/connected|/mgr/nodes|/([^/]+)/(\d+)/(prog|setup|version)"
 )
 
-_HEATER_NODE_TYPES = ["htr", "htr_mod"]
+_HEATER_NODE_TYPES = ["htr", "htr_mod", "acm"]
 
 
 class SmartboxDevice(object):
