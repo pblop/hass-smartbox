@@ -80,16 +80,29 @@ sensor:
     round: 2
     method: left
 ```
-    
+
 The resulting sensor 'sensor.energy_living_room' can then be added to the Energy dashboard as soon as it has values.
-    
-    
+
+## Supported Node types
+
+### Heaters
+These are modelled as Home Assistant Climate entities.
+
+* `htr` nodes
+  * Supported modes: 'manual' and 'auto'
+  * Supported presets: 'home and 'away'
+* `htr_mod` and `acm` (accumulator) nodes
+  * Supported modes: 'manual' and 'auto'
+  * Semi-supported modes: 'self_learn' (mapped to 'auto')
+  * Unsupported modes: 'presence'
+  * Supported presets: 'home and 'away'
+  * Unsupported presets: 'comfort', 'eco' and 'ice'
+
 ## TODO
 * config_flow (only configured via yaml atm)
 * Support device grouping
 * Handle adding and removing entities properly
 * Graceful cleanup/shutdown of update task
-* Handle node types other than heater
 * Handle other presets/modes (e.g. boost, eco, window)
 
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
