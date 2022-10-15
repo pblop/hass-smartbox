@@ -15,14 +15,16 @@ from mocks import (
     get_entity_id,
     get_object_id,
     get_unique_id,
+    round_temp,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
 
 def _check_temp_state(hass, mock_node_status, state):
-    assert float(state.state) == approx(
-        convert_temp(hass, mock_node_status["units"], mock_node_status["mtemp"])
+    assert round_temp(hass, float(state.state)) == round_temp(
+        hass,
+        convert_temp(hass, mock_node_status["units"], float(mock_node_status["mtemp"])),
     )
 
 
@@ -52,7 +54,7 @@ async def test_basic_temp(hass, mock_smartbox):
             mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
-                {"mtemp": mock_node_status["mtemp"] + 1},
+                {"mtemp": str(float(mock_node_status["mtemp"]) + 1)},
             )
 
             await hass.helpers.entity_component.async_update_entity(entity_id)
@@ -71,7 +73,7 @@ async def test_basic_temp(hass, mock_smartbox):
             state = hass.states.get(entity_id)
             assert state.state == STATE_UNAVAILABLE
 
-            mock_node_status = mock_smartbox.generate_socket_random_status(
+            mock_node_status = mock_smartbox.generate_new_socket_status(
                 mock_device, mock_node
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
@@ -109,7 +111,7 @@ async def test_basic_power(hass, mock_smartbox):
                 mock_device["dev_id"], mock_node
             )
             assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
-            assert float(state.state) == approx(mock_node_status["power"])
+            assert float(state.state) == approx(float(mock_node_status["power"]))
 
             # make sure it's inactive
             mock_smartbox.generate_socket_status_update(
@@ -132,7 +134,7 @@ async def test_basic_power(hass, mock_smartbox):
             state = hass.states.get(entity_id)
             assert state.state == STATE_UNAVAILABLE
 
-            mock_node_status = mock_smartbox.generate_socket_random_status(
+            mock_node_status = mock_smartbox.generate_new_socket_status(
                 mock_device, mock_node
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)

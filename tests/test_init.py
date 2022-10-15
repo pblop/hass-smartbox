@@ -19,7 +19,7 @@ from custom_components.smartbox.const import (
     CONF_SOCKET_BACKOFF_FACTOR,
     SMARTBOX_DEVICES,
 )
-from const import MOCK_CONFIG_1, MOCK_CONFIG_2, MOCK_CONFIG_3
+from const import TEST_CONFIG_1, TEST_CONFIG_2, TEST_CONFIG_3
 from mocks import mock_device, mock_node
 
 _LOGGER = logging.getLogger(__name__)
@@ -27,8 +27,8 @@ _LOGGER = logging.getLogger(__name__)
 
 async def test_setup_basic(hass, caplog):
     dev_1_id = "test_device_id_1"
-    mock_node_1 = mock_node(dev_1_id, 1)
-    mock_node_2 = mock_node(dev_1_id, 2)
+    mock_node_1 = mock_node(dev_1_id, 1, "htr")
+    mock_node_2 = mock_node(dev_1_id, 2, "htr_mod")
     mock_dev_1 = mock_device(dev_1_id, [mock_node_1, mock_node_2])
 
     with patch(
@@ -36,18 +36,18 @@ async def test_setup_basic(hass, caplog):
         autospec=True,
         return_value=[mock_dev_1],
     ) as get_devices_mock:
-        assert await async_setup_component(hass, "smartbox", MOCK_CONFIG_1)
+        assert await async_setup_component(hass, "smartbox", TEST_CONFIG_1)
         await hass.async_block_till_done()
         get_devices_mock.assert_any_await(
             hass,
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
-            MOCK_CONFIG_1[DOMAIN][CONF_BASIC_AUTH_CREDS],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
+            TEST_CONFIG_1[DOMAIN][CONF_BASIC_AUTH_CREDS],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
 
@@ -61,15 +61,15 @@ async def test_setup_basic(hass, caplog):
 
 async def test_setup_multiple_accounts_and_devices(hass):
     dev_1_id = "test_device_id_1"
-    mock_dev_1_node_1 = mock_node(dev_1_id, 1)
+    mock_dev_1_node_1 = mock_node(dev_1_id, 1, "htr_mod")
     mock_dev_1 = mock_device(dev_1_id, [mock_dev_1_node_1])
 
     dev_2_1_id = "test_device_id_2_1"
-    mock_dev_2_1_node_1 = mock_node(dev_2_1_id, 1)
+    mock_dev_2_1_node_1 = mock_node(dev_2_1_id, 1, "htr")
     mock_dev_2_1 = mock_device(dev_2_1_id, [mock_dev_2_1_node_1])
 
     dev_2_2_id = "test_device_id_2_2"
-    mock_dev_2_2_node_1 = mock_node(dev_2_2_id, 1)
+    mock_dev_2_2_node_1 = mock_node(dev_2_2_id, 1, "acm")
     mock_dev_2_2 = mock_device(dev_2_2_id, [mock_dev_2_2_node_1])
 
     devs = [[mock_dev_1], [mock_dev_2_1, mock_dev_2_2]]
@@ -79,30 +79,30 @@ async def test_setup_multiple_accounts_and_devices(hass):
         autospec=True,
         side_effect=devs,
     ) as get_devices_mock:
-        assert await async_setup_component(hass, "smartbox", MOCK_CONFIG_2)
+        assert await async_setup_component(hass, "smartbox", TEST_CONFIG_2)
         # first account
         get_devices_mock.assert_any_await(
             hass,
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
-            MOCK_CONFIG_2[DOMAIN][CONF_BASIC_AUTH_CREDS],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
+            TEST_CONFIG_2[DOMAIN][CONF_BASIC_AUTH_CREDS],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
         # second account
         get_devices_mock.assert_any_await(
             hass,
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_API_NAME],
-            MOCK_CONFIG_2[DOMAIN][CONF_BASIC_AUTH_CREDS],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_USERNAME],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_PASSWORD],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SESSION_RETRY_ATTEMPTS],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SESSION_BACKOFF_FACTOR],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SOCKET_RECONNECT_ATTEMPTS],
-            MOCK_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SOCKET_BACKOFF_FACTOR],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_API_NAME],
+            TEST_CONFIG_2[DOMAIN][CONF_BASIC_AUTH_CREDS],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_USERNAME],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_PASSWORD],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SESSION_RETRY_ATTEMPTS],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SESSION_BACKOFF_FACTOR],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            TEST_CONFIG_2[DOMAIN][CONF_ACCOUNTS][1][CONF_SOCKET_BACKOFF_FACTOR],
         )
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
     assert mock_dev_2_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
@@ -112,14 +112,14 @@ async def test_setup_multiple_accounts_and_devices(hass):
 async def test_setup_missing_and_extra_devices(hass, caplog):
     # config specifies devices 1 and 2, but 2 is missing and 3 exists
     dev_1_id = "test_device_id_1"
-    mock_node_1 = mock_node(dev_1_id, 1)
-    mock_node_2 = mock_node(dev_1_id, 2)
+    mock_node_1 = mock_node(dev_1_id, 1, "acm")
+    mock_node_2 = mock_node(dev_1_id, 2, "htr_mod")
     mock_dev_1 = mock_device(dev_1_id, [mock_node_1, mock_node_2])
 
     dev_2_id = "test_device_id_2"  # missing
 
     dev_3_id = "test_device_id_3"
-    mock_node_1 = mock_node(dev_3_id, 1)
+    mock_node_1 = mock_node(dev_3_id, 1, "htr")
     mock_dev_3 = mock_device(dev_3_id, [mock_node_1])
 
     with patch(
@@ -127,17 +127,17 @@ async def test_setup_missing_and_extra_devices(hass, caplog):
         autospec=True,
         return_value=[mock_dev_1, mock_dev_3],
     ) as get_devices_mock:
-        assert await async_setup_component(hass, "smartbox", MOCK_CONFIG_3)
+        assert await async_setup_component(hass, "smartbox", TEST_CONFIG_3)
         get_devices_mock.assert_any_await(
             hass,
-            MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
-            MOCK_CONFIG_3[DOMAIN][CONF_BASIC_AUTH_CREDS],
-            MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
-            MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
-            MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
-            MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
-            MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
-            MOCK_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
+            TEST_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
+            TEST_CONFIG_3[DOMAIN][CONF_BASIC_AUTH_CREDS],
+            TEST_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
+            TEST_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
+            TEST_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
+            TEST_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
+            TEST_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            TEST_CONFIG_3[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
     assert mock_dev_3 not in hass.data[DOMAIN][SMARTBOX_DEVICES]
@@ -156,7 +156,7 @@ async def test_setup_missing_and_extra_devices(hass, caplog):
 
 async def test_setup_unsupported_nodes(hass, caplog):
     dev_1_id = "test_device_id_1"
-    mock_node_1 = mock_node(dev_1_id, 1, "htr")
+    mock_node_1 = mock_node(dev_1_id, 1, "htr_mod")
     mock_node_2 = mock_node(dev_1_id, 2, "test_unsupported_node")
     mock_dev_1 = mock_device(dev_1_id, [mock_node_1, mock_node_2])
 
@@ -165,17 +165,17 @@ async def test_setup_unsupported_nodes(hass, caplog):
         autospec=True,
         return_value=[mock_dev_1],
     ) as get_devices_mock:
-        assert await async_setup_component(hass, "smartbox", MOCK_CONFIG_1)
+        assert await async_setup_component(hass, "smartbox", TEST_CONFIG_1)
         get_devices_mock.assert_any_await(
             hass,
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
-            MOCK_CONFIG_1[DOMAIN][CONF_BASIC_AUTH_CREDS],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
-            MOCK_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_API_NAME],
+            TEST_CONFIG_1[DOMAIN][CONF_BASIC_AUTH_CREDS],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_USERNAME],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_PASSWORD],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_RETRY_ATTEMPTS],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SESSION_BACKOFF_FACTOR],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
+            TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
     assert (
         "custom_components.smartbox",

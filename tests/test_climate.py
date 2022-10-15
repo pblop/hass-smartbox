@@ -75,11 +75,13 @@ def _check_state(hass, mock_node_status, state):
     assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
 
     assert round_temp(hass, state.attributes[ATTR_CURRENT_TEMPERATURE]) == round_temp(
-        hass, convert_temp(hass, mock_node_status["units"], mock_node_status["mtemp"])
+        hass,
+        convert_temp(hass, mock_node_status["units"], float(mock_node_status["mtemp"])),
     )
     # ATTR_TEMPERATURE actually stores the target temperature
     assert round_temp(hass, state.attributes[ATTR_TEMPERATURE]) == round_temp(
-        hass, convert_temp(hass, mock_node_status["units"], mock_node_status["stemp"])
+        hass,
+        convert_temp(hass, mock_node_status["units"], float(mock_node_status["stemp"])),
     )
 
     assert state.attributes[ATTR_HVAC_ACTION] == status_to_hvac_action(mock_node_status)
@@ -114,7 +116,7 @@ async def test_basic(hass, mock_smartbox):
             mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
-                {"mtemp": mock_node_status["mtemp"] + 1},
+                {"mtemp": str(float(mock_node_status["mtemp"]) + 1)},
             )
 
             await hass.helpers.entity_component.async_update_entity(entity_id)
@@ -151,7 +153,7 @@ async def test_unavailable(hass, mock_smartbox):
             state = hass.states.get(entity_id)
             assert state.state == STATE_UNAVAILABLE
 
-            mock_node_status = mock_smartbox.generate_socket_random_status(
+            mock_node_status = mock_smartbox.generate_new_socket_status(
                 mock_device, mock_node
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)

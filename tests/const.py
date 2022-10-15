@@ -12,7 +12,7 @@ from custom_components.smartbox.const import (
     CONF_SOCKET_BACKOFF_FACTOR,
 )
 
-MOCK_CONFIG_1 = {
+TEST_CONFIG_1 = {
     DOMAIN: {
         CONF_ACCOUNTS: [
             {
@@ -30,7 +30,7 @@ MOCK_CONFIG_1 = {
     }
 }
 
-MOCK_CONFIG_2 = {
+TEST_CONFIG_2 = {
     DOMAIN: {
         CONF_ACCOUNTS: [
             {
@@ -58,7 +58,7 @@ MOCK_CONFIG_2 = {
     }
 }
 
-MOCK_CONFIG_3 = {
+TEST_CONFIG_3 = {
     DOMAIN: {
         CONF_ACCOUNTS: [
             {
@@ -74,4 +74,148 @@ MOCK_CONFIG_3 = {
         ],
         CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
     }
+}
+
+MOCK_SMARTBOX_CONFIG = {
+    DOMAIN: {
+        CONF_ACCOUNTS: [
+            {
+                CONF_API_NAME: "test_api_name_1",
+                CONF_USERNAME: "test_username_1",
+                CONF_PASSWORD: "test_password_1",
+                CONF_DEVICE_IDS: ["test_device_id_1", "test_device_id_2"],
+                CONF_SESSION_RETRY_ATTEMPTS: 7,
+                CONF_SESSION_BACKOFF_FACTOR: 0.4,
+                CONF_SOCKET_RECONNECT_ATTEMPTS: 6,
+                CONF_SOCKET_BACKOFF_FACTOR: 0.5,
+            },
+        ],
+        CONF_BASIC_AUTH_CREDS: "test_basic_auth_creds",
+    }
+}
+
+
+MOCK_SMARTBOX_NODE_INFO = {
+    "test_device_id_1": [
+        {
+            "addr": 0,
+            "name": "Test device 1 node 0",
+            "type": "htr",
+        },
+        {
+            "addr": 1,
+            "name": "Test device 1 node 1",
+            "type": "acm",
+        },
+    ],
+    "test_device_id_2": [
+        {
+            "addr": 0,
+            "name": "Test device 2 node 0",
+            "type": "htr_mod",
+        },
+        {
+            "addr": 1,
+            "name": "Test device 2 node 1",
+            "type": "htr_mod",
+        },
+    ],
+}
+
+MOCK_SMARTBOX_NODE_STATUS_C = {
+    "test_device_id_1": [
+        {
+            "mtemp": "25.7",
+            "stemp": "20.3",
+            "units": "C",
+            "sync_status": "ok",
+            "locked": False,
+            "active": True,
+            "power": "510",
+            "mode": "auto",
+        },
+        {
+            "mtemp": "19.2",
+            "stemp": "21",
+            "units": "C",
+            "sync_status": "ok",
+            "locked": False,
+            "active": True,
+            "power": "620",
+            "mode": "manual",
+            # TODO: update for other node type
+        },
+    ],
+    "test_device_id_2": [
+        {
+            "mtemp": "25.7",
+            "stemp": "20.3",
+            "units": "C",
+            "sync_status": "ok",
+            "locked": False,
+            "active": True,
+            "power": "510",
+            "mode": "auto",
+        },
+        {
+            "mtemp": "19.2",
+            "stemp": "21",
+            "units": "C",
+            "sync_status": "ok",
+            "locked": False,
+            "active": True,
+            "power": "620",
+            "mode": "manual",
+            # TODO: update for other node type
+        },
+    ],
+}
+
+MOCK_SMARTBOX_NODE_STATUS_F = {
+    "test_device_id_1": [
+        {
+            "mtemp": "80.7",
+            "stemp": "78.3",
+            "units": "F",
+            "sync_status": "ok",
+            "locked": False,
+            "active": True,
+            "power": "510",
+            "mode": "auto",
+        },
+        {
+            "mtemp": "81.2",
+            "stemp": "82",
+            "units": "F",
+            "sync_status": "ok",
+            "locked": False,
+            "active": True,
+            "power": "620",
+            "mode": "manual",
+            # TODO: update for other node type
+        },
+    ],
+    "test_device_id_2": [
+        {
+            "mtemp": "80.7",
+            "stemp": "78.3",
+            "units": "F",
+            "sync_status": "ok",
+            "locked": False,
+            "active": True,
+            "power": "510",
+            "mode": "auto",
+        },
+        {
+            "mtemp": "81.2",
+            "stemp": "82",
+            "units": "F",
+            "sync_status": "ok",
+            "locked": False,
+            "active": True,
+            "power": "620",
+            "mode": "manual",
+            # TODO: update for other node type
+        },
+    ],
 }

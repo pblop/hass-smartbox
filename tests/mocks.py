@@ -1,5 +1,4 @@
 import logging
-import random
 from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
@@ -23,22 +22,20 @@ def mock_device(dev_id, nodes):
     return dev
 
 
-def mock_node(dev_id, addr, node_type="htr"):
+def mock_node(dev_id, addr, node_type, mode="auto"):
     node = MagicMock()
     node.node_type = node_type
     node.name = f"node_{addr}"
     node.node_id = f"{dev_id}-{addr}"
-    # TODO: pre-configure the test nodes rather than using random choices
-    # (tests should be predictable)
     node.status = {
-        "mtemp": random.random() * 40,
-        "stemp": random.random() * 40,
-        "units": random.choice(["C", "F"]),
+        "mtemp": "19.5",
+        "stemp": "20",
+        "units": "C",
         "sync_status": "ok",
         "locked": False,
-        "active": random.choice([True, False]),
-        "power": random.random() * 1000,
-        "mode": random.choice(["off", "manual", "auto", "modified_auto", "self_learn"]),
+        "active": True,
+        "power": "854",
+        "mode": mode,
     }
     node.async_update = AsyncMock(return_value=node.status)
     return node
@@ -65,29 +62,22 @@ def get_entity(hass, platform, unique_id):
 
 
 class MockSmartbox(object):
-    def __init__(self, mock_config, num_nodes=2, start_unavailable=False):
+    def __init__(
+        self, mock_config, mock_node_info, mock_node_status, start_available=True
+    ):
         self.config = mock_config
         assert len(mock_config[DOMAIN][CONF_ACCOUNTS]) == 1
         config_dev_ids = mock_config[DOMAIN][CONF_ACCOUNTS][0][CONF_DEVICE_IDS]
         self._devices = list(map(self._get_device, config_dev_ids))
-        self._node_info = {
-            device["dev_id"]: [
-                self._get_node_info(device["dev_id"], i) for i in range(num_nodes)
-            ]
-            for device in self._devices
-        }
+        self._node_info = mock_node_info
         # socket has most up to date status
-        self._socket_node_status = {
-            device["dev_id"]: [
-                (
-                    self._get_unavailable_status()
-                    if start_unavailable
-                    else self._get_random_status()
-                )
-                for i in range(num_nodes)
-            ]
-            for device in self._devices
-        }
+        self._socket_node_status = mock_node_status
+        if not start_available:
+            for dev in self._devices:
+                for node_info in self._node_info[dev["dev_id"]]:
+                    self._socket_node_status[dev["dev_id"]][node_info["addr"]][
+                        "sync_status"
+                    ] = "lost"
         # session status can be stale
         self._session_node_status = self._socket_node_status
 
@@ -97,31 +87,6 @@ class MockSmartbox(object):
     def _get_device(self, dev_id):
         return {
             "dev_id": dev_id,
-        }
-
-    def _get_node_info(self, dev_id, addr):
-        return {
-            "addr": addr,
-            "name": f"Test node {dev_id} {addr}",
-            # TODO: tests should be deterministic
-            "type": random.choice(["htr", "htr_mod", "acm"]),
-        }
-
-    def _get_unavailable_status(self):
-        return {
-            "sync_status": "lost",
-        }
-
-    def _get_random_status(self):
-        return {
-            "mtemp": random.random() * 40,
-            "stemp": random.random() * 40,
-            "units": random.choice(["C", "F"]),
-            "sync_status": "ok",
-            "locked": random.choice([True, False]),
-            "active": random.choice([True, False]),
-            "power": random.random() * 1000,
-            "mode": random.choice(["off", "auto", "manual"]),
         }
 
     def _get_session(self):
@@ -172,31 +137,45 @@ class MockSmartbox(object):
         socket.on_dev_data(dev_data)
 
     def _get_session_status(self, dev_id, addr):
-        return self._session_node_status[dev_id][addr]
+        status = self._session_node_status[dev_id][addr]
+        if status["sync_status"] == "lost":
+            return {"sync_status": "lost"}
+        return status
 
     def _get_socket_status(self, dev_id, addr):
-        return self._socket_node_status[dev_id][addr]
+        status = self._socket_node_status[dev_id][addr]
+        if status["sync_status"] == "lost":
+            return {"sync_status": "lost"}
+        return status
 
     def generate_socket_status_update(self, mock_device, mock_node, status_updates):
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
         self._socket_node_status[dev_id][addr].update(status_updates)
         self._send_socket_update(dev_id, addr)
-        return self._socket_node_status[dev_id][addr]
+        return self._get_socket_status(dev_id, addr)
 
-    def generate_socket_random_status(self, mock_device, mock_node):
+    def generate_new_socket_status(self, mock_device, mock_node):
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
-        self._socket_node_status[dev_id][addr] = self._get_random_status()
+        status = self._socket_node_status[dev_id][addr]
+        temp_increment = 0.1 if status["units"] == "C" else 1
+        status["mtemp"] = str(float(status["mtemp"]) + temp_increment)
+        status["stemp"] = str(float(status["stemp"]) + temp_increment)
+        # always set back to in-sync status
+        status["sync_status"] = "ok"
+        status["power"] = str(float(status["power"]) + 1)
+        self._socket_node_status[dev_id][addr] = status
+
         self._send_socket_update(dev_id, addr)
-        return self._socket_node_status[dev_id][addr]
+        return self._get_socket_status(dev_id, addr)
 
     def generate_socket_node_unavailable(self, mock_device, mock_node):
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
-        self._socket_node_status[dev_id][addr] = self._get_unavailable_status()
+        self._socket_node_status[dev_id][addr]["sync_status"] = "lost"
         self._send_socket_update(dev_id, addr)
-        return self._socket_node_status[dev_id][addr]
+        return self._get_socket_status(dev_id, addr)
 
     def _send_socket_update(self, dev_id, addr):
         socket = self.sockets[dev_id]
@@ -217,6 +196,7 @@ def convert_temp(hass, node_units, temp):
 
 
 def round_temp(hass, temp):
+    print(f"TEMP {temp} {type(temp)}")
     # HA uses different precisions for Fahrenheit (whole
     # integers) vs Celsius (tenths)
     if hass.config.units.temperature_unit == TEMP_CELSIUS:

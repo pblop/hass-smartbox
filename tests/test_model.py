@@ -247,7 +247,7 @@ async def test_smartbox_node(hass):
     node_name = "Bathroom Thermostat"
     node_info = {"addr": node_addr, "name": node_name, "type": node_type}
     mock_session = MagicMock()
-    initial_status = {"mtemp": 21.4, "stemp": 22.5}
+    initial_status = {"mtemp": "21.4", "stemp": "22.5"}
 
     node = SmartboxNode(mock_device, node_info, mock_session, initial_status)
     assert node.node_id == f"{dev_id}-{node_addr}"
@@ -256,7 +256,7 @@ async def test_smartbox_node(hass):
     assert node.addr == node_addr
 
     assert node.status == initial_status
-    new_status = {"mtemp": 21.6, "stemp": 22.5}
+    new_status = {"mtemp": "21.6", "stemp": "22.5"}
     node.update_status(new_status)
     assert node.status == new_status
 

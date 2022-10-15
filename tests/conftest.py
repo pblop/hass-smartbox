@@ -1,11 +1,17 @@
+from copy import deepcopy
 import pytest
 from unittest.mock import patch
 
-from const import MOCK_CONFIG_3
+from const import (
+    MOCK_SMARTBOX_CONFIG,
+    MOCK_SMARTBOX_NODE_INFO,
+    MOCK_SMARTBOX_NODE_STATUS_F,
+    MOCK_SMARTBOX_NODE_STATUS_C,
+)
+
 from mocks import MockSmartbox
 
 pytest_plugins = "pytest_homeassistant_custom_component"
-
 
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
@@ -26,9 +32,17 @@ def skip_notifications_fixture():
         yield
 
 
-@pytest.fixture
-def mock_smartbox():
-    mock_smartbox = MockSmartbox(MOCK_CONFIG_3)
+@pytest.fixture(params=["C", "F"])
+def mock_smartbox(request):
+    mock_smartbox = MockSmartbox(
+        MOCK_SMARTBOX_CONFIG,
+        MOCK_SMARTBOX_NODE_INFO,
+        deepcopy(
+            MOCK_SMARTBOX_NODE_STATUS_C
+            if request.param == "C"
+            else MOCK_SMARTBOX_NODE_STATUS_F
+        ),
+    )
 
     with patch(
         "custom_components.smartbox.model.Session",
@@ -43,9 +57,18 @@ def mock_smartbox():
             yield mock_smartbox
 
 
-@pytest.fixture
-def mock_smartbox_unavailable():
-    mock_smartbox = MockSmartbox(MOCK_CONFIG_3, start_unavailable=True)
+@pytest.fixture(params=["C", "F"])
+def mock_smartbox_unavailable(request):
+    mock_smartbox = MockSmartbox(
+        MOCK_SMARTBOX_CONFIG,
+        MOCK_SMARTBOX_NODE_INFO,
+        deepcopy(
+            MOCK_SMARTBOX_NODE_STATUS_C
+            if request.param == "C"
+            else MOCK_SMARTBOX_NODE_STATUS_F
+        ),
+        False,
+    )
 
     with patch(
         "custom_components.smartbox.model.Session",
