@@ -8,8 +8,8 @@ module should be automatically installed from github via the reference in the
 `manifest.json` file.
 
 Then, install the `custom_components/smartbox` directory in this repo to your
-Home Assistant `custom_components` directory. See the [Home Assistant docs] for
-details.
+Home Assistant `custom_components` directory. See the [Home Assistant
+integration docs] for details.
 
 ### HACS
 Initial support is available for installation via HACS, as a [custom
@@ -98,6 +98,27 @@ These are modelled as Home Assistant Climate entities.
   * Supported presets: 'home and 'away'
   * Unsupported presets: 'comfort', 'eco' and 'ice'
 
+## Debugging
+
+Debug logging can be enabled by increasing the log level for the smartbox custom
+component and the underlying [smartbox] python module in the Home Assistant
+`configuration.yaml`:
+
+```
+ logger:
+   ...
+   logs:
+     custom_components.smartbox: debug
+     smartbox: debug
+   ...
+```
+
+**Warning: currently logs might include credentials, so please be careful when
+sharing excerpts from logs**
+
+See the [Home Assistant logger docs] for how to view the actual logs. Please
+file a [Github issue] with any problems.
+
 ## TODO
 * config_flow (only configured via yaml atm)
 * Support device grouping
@@ -106,6 +127,8 @@ These are modelled as Home Assistant Climate entities.
 * Handle other presets/modes (e.g. boost, eco, window)
 
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
-[Home Assistant docs]: https://developers.home-assistant.io/docs/creating_integration_file_structure
+[Github issue]: https://github.com/graham33/hass-smartbox/issues
+[Home Assistant integration docs]: https://developers.home-assistant.io/docs/creating_integration_file_structure/#where-home-assistant-looks-for-integrations
+[Home Assistant logger docs]: https://www.home-assistant.io/integrations/logger/#viewing-logs
 [Home Assistant secrets management]: https://www.home-assistant.io/docs/configuration/secrets/
 [smartbox]: https://github.com/graham33/smartbox
