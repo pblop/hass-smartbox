@@ -3,7 +3,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers import entity_registry
-from homeassistant.util.temperature import convert as convert_temperature
+from homeassistant.util.unit_conversion import TemperatureConverter
 
 from custom_components.smartbox.const import (
     DOMAIN,
@@ -192,7 +192,7 @@ def convert_temp(hass, node_units, temp):
     # Temperatures are converted to the units of the HA
     # instance, so do the same for comparison
     unit = TEMP_CELSIUS if node_units == "C" else TEMP_FAHRENHEIT
-    return convert_temperature(temp, unit, hass.config.units.temperature_unit)
+    return TemperatureConverter.convert(temp, unit, hass.config.units.temperature_unit)
 
 
 def round_temp(hass, temp):
