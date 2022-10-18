@@ -88,10 +88,10 @@ The resulting sensor 'sensor.energy_living_room' can then be added to the Energy
 ### Heaters
 These are modelled as Home Assistant Climate entities.
 
-* `htr` nodes
+* `htr` and `acm` (accumulator) nodes
   * Supported modes: 'manual' and 'auto'
   * Supported presets: 'home and 'away'
-* `htr_mod` and `acm` (accumulator) nodes
+* `htr_mod`
   * Supported modes: 'manual' and 'auto'
   * Semi-supported modes: 'self_learn' (mapped to 'auto')
   * Unsupported modes: 'presence'
