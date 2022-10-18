@@ -29,7 +29,6 @@ def mock_node(dev_id, addr, node_type, mode="auto"):
     node.node_id = f"{dev_id}-{addr}"
     node.status = {
         "mtemp": "19.5",
-        "stemp": "20",
         "units": "C",
         "sync_status": "ok",
         "locked": False,
@@ -37,6 +36,13 @@ def mock_node(dev_id, addr, node_type, mode="auto"):
         "power": "854",
         "mode": mode,
     }
+    if node_type == "htr_mod":
+        node.status["selected_temp"] = "comfort"
+        node.status["comfort_temp"] = "22"
+        node.status["eco_offset"] = "2"
+    else:
+        node.status["stemp"] = "20"
+
     node.async_update = AsyncMock(return_value=node.status)
     return node
 
@@ -161,7 +167,10 @@ class MockSmartbox(object):
         status = self._socket_node_status[dev_id][addr]
         temp_increment = 0.1 if status["units"] == "C" else 1
         status["mtemp"] = str(float(status["mtemp"]) + temp_increment)
-        status["stemp"] = str(float(status["stemp"]) + temp_increment)
+        if mock_node["type"] == "htr_mod":
+            status["comfort_temp"] = str(float(status["comfort_temp"]) + temp_increment)
+        else:
+            status["stemp"] = str(float(status["stemp"]) + temp_increment)
         # always set back to in-sync status
         status["sync_status"] = "ok"
         status["power"] = str(float(status["power"]) + 1)

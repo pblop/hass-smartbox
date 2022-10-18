@@ -1,4 +1,5 @@
 import logging
+import pytest
 from unittest.mock import (
     MagicMock,
     NonCallableMock,
@@ -20,8 +21,10 @@ from custom_components.smartbox.const import (
 from custom_components.smartbox.model import (
     create_smartbox_device,
     get_devices,
+    get_target_temperature,
     is_heater_node,
     is_supported_node,
+    set_temperature_args,
     SmartboxDevice,
     SmartboxNode,
 )
@@ -289,3 +292,144 @@ def test_is_supported_node():
     assert is_supported_node(mock_node(dev_id, addr, "acm"))
     assert not is_supported_node(mock_node(dev_id, addr, "thm"))
     assert not is_supported_node(mock_node(dev_id, addr, "oijijr"))
+
+
+def test_get_target_temperature():
+    assert get_target_temperature("htr", {"stemp": "22.5"}) == 22.5
+    assert get_target_temperature("acm", {"stemp": "12.6"}) == 12.6
+    with pytest.raises(KeyError):
+        get_target_temperature("htr", {"xxx": "22.5"})
+
+    assert (
+        get_target_temperature(
+            "htr_mod",
+            {
+                "selected_temp": "comfort",
+                "comfort_temp": "17.2",
+            },
+        )
+        == 17.2
+    )
+    assert (
+        get_target_temperature(
+            "htr_mod",
+            {
+                "selected_temp": "eco",
+                "comfort_temp": "17.2",
+                "eco_offset": "4",
+            },
+        )
+        == 13.2
+    )
+    assert (
+        get_target_temperature(
+            "htr_mod",
+            {
+                "selected_temp": "ice",
+                "ice_temp": "7",
+            },
+        )
+        == 7
+    )
+
+    with pytest.raises(KeyError) as exc_info:
+        get_target_temperature(
+            "htr_mod",
+            {
+                "selected_temp": "comfort",
+            },
+        )
+    assert "comfort_temp" in exc_info.exconly()
+    with pytest.raises(KeyError) as exc_info:
+        get_target_temperature(
+            "htr_mod",
+            {
+                "selected_temp": "eco",
+                "comfort_temp": "17.2",
+            },
+        )
+    assert "eco_offset" in exc_info.exconly()
+    with pytest.raises(KeyError) as exc_info:
+        get_target_temperature(
+            "htr_mod",
+            {
+                "selected_temp": "ice",
+            },
+        )
+    assert "ice_temp" in exc_info.exconly()
+
+
+def test_set_temperature_args():
+    assert set_temperature_args("htr", {"units": "C"}, 21.7) == {
+        "stemp": "21.7",
+        "units": "C",
+    }
+    assert set_temperature_args("acm", {"units": "F"}, 78) == {
+        "stemp": "78",
+        "units": "F",
+    }
+    with pytest.raises(KeyError) as exc_info:
+        set_temperature_args("htr", {}, 24.7)
+    assert "units" in exc_info.exconly()
+
+    assert set_temperature_args(
+        "htr_mod",
+        {
+            "mode": "auto",
+            "selected_temp": "comfort",
+            "comfort_temp": "18.2",
+            "eco_offset": "4",
+            "units": "C",
+        },
+        17.2,
+    ) == {
+        "on": True,
+        "mode": "auto",
+        "selected_temp": "comfort",
+        "comfort_temp": "17.2",
+        "eco_offset": "4",
+        "units": "C",
+    }
+    assert set_temperature_args(
+        "htr_mod",
+        {
+            "mode": "auto",
+            "selected_temp": "eco",
+            "comfort_temp": "17.2",
+            "eco_offset": "4",
+            "units": "C",
+        },
+        14.2,
+    ) == {
+        "on": True,
+        "mode": "auto",
+        "selected_temp": "eco",
+        "comfort_temp": "18.2",
+        "eco_offset": "4",
+        "units": "C",
+    }
+    with pytest.raises(ValueError) as exc_info:
+        set_temperature_args(
+            "htr_mod",
+            {
+                "mode": "auto",
+                "selected_temp": "ice",
+                "ice_temp": "7",
+                "units": "C",
+            },
+            7,
+        )
+    assert "ice mode" in exc_info.exconly()
+
+    with pytest.raises(KeyError) as exc_info:
+        set_temperature_args(
+            "htr_mod",
+            {
+                "mode": "auto",
+                "selected_temp": "eco",
+                "comfort_temp": "17.2",
+                "units": "C",
+            },
+            17.2,
+        )
+    assert "eco_offset" in exc_info.exconly()

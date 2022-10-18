@@ -11,6 +11,8 @@ from smartbox import Session, SocketSession
 from typing import Any, Dict, List, Union
 from unittest.mock import MagicMock
 
+from .const import GITHUB_ISSUES_URL
+
 _LOGGER = logging.getLogger(__name__)
 
 _AWAY_STATUS_UPDATE_RE = re.compile(r"^/mgr/away_status")
@@ -249,3 +251,68 @@ async def create_smartbox_device(
     )
     await device.initialise_nodes(hass)
     return device
+
+
+def _check_status_key(key: str, node_type: str, status: Dict[str, Any]):
+    if key not in status:
+        raise KeyError(
+            f"'{key}' not found in {node_type} - please report to {GITHUB_ISSUES_URL}. "
+            f"status: {status}"
+        )
+
+
+def get_target_temperature(node_type: str, status: Dict[str, Any]) -> float:
+    if node_type == "htr_mod":
+        _check_status_key("selected_temp", node_type, status)
+        if status["selected_temp"] == "comfort":
+            _check_status_key("comfort_temp", node_type, status)
+            return float(status["comfort_temp"])
+        elif status["selected_temp"] == "eco":
+            _check_status_key("comfort_temp", node_type, status)
+            _check_status_key("eco_offset", node_type, status)
+            return float(status["comfort_temp"]) - float(status["eco_offset"])
+        elif status["selected_temp"] == "ice":
+            _check_status_key("ice_temp", node_type, status)
+            return float(status["ice_temp"])
+        else:
+            raise KeyError(
+                f"'Unexpected 'selected_temp' value {status['selected_temp']} found for "
+                f"{node_type} - please report to {GITHUB_ISSUES_URL}. status: {status}"
+            )
+    else:
+        _check_status_key("stemp", node_type, status)
+        return float(status["stemp"])
+
+
+def set_temperature_args(
+    node_type: str, status: Dict[str, Any], temp: float
+) -> Dict[str, Any]:
+    _check_status_key("units", node_type, status)
+    if node_type == "htr_mod":
+        if status["selected_temp"] == "comfort":
+            target_temp = temp
+        elif status["selected_temp"] == "eco":
+            _check_status_key("eco_offset", node_type, status)
+            target_temp = temp + float(status["eco_offset"])
+        elif status["selected_temp"] == "ice":
+            raise ValueError(
+                "Can't set temperature for htr_mod devices when ice mode is selected"
+            )
+        else:
+            raise KeyError(
+                f"'Unexpected 'selected_temp' value {status['selected_temp']} found for "
+                f"{node_type} - please report to {GITHUB_ISSUES_URL}. status: {status}"
+            )
+        return {
+            "on": True,
+            "mode": status["mode"],
+            "selected_temp": status["selected_temp"],
+            "comfort_temp": str(target_temp),
+            "eco_offset": status["eco_offset"],
+            "units": status["units"],
+        }
+    else:
+        return {
+            "stemp": str(temp),
+            "units": status["units"],
+        }

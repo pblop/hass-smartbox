@@ -20,8 +20,14 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import MagicMock
 
-from .const import DOMAIN, SMARTBOX_NODES
-from .model import get_temperature_unit, is_heater_node, SmartboxNode
+from .const import DOMAIN, GITHUB_ISSUES_URL, SMARTBOX_NODES
+from .model import (
+    get_target_temperature,
+    get_temperature_unit,
+    is_heater_node,
+    set_temperature_args,
+    SmartboxNode,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -130,16 +136,24 @@ class SmartboxHeater(ClimateEntity):
         """Return the current temperature."""
         return float(self._status["mtemp"])
 
+    def _check_status_key(self, key):
+        if key not in self._status:
+            raise KeyError(
+                f"'{key}' not found in {self._node.node_type} - please report to {GITHUB_ISSUES_URL}. "
+                f"status: {self._status}"
+            )
+
     @property
     def target_temperature(self) -> float:
         """Return the target temperature."""
-        return float(self._status["stemp"])
+        return get_target_temperature(self._node.node_type, self._status)
 
     def set_temperature(self, **kwargs):
         """Set new target temperature."""
         temp = kwargs.get(ATTR_TEMPERATURE)
         if temp is not None:
-            self._node.set_status(stemp=str(temp), units=self._status["units"])
+            status_args = set_temperature_args(self._node.node_type, self._status, temp)
+            self._node.set_status(**status_args)
 
     @property
     def hvac_action(self) -> str:

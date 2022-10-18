@@ -70,7 +70,7 @@ def test_status_to_hvac_action():
         status_to_hvac_action({})
 
 
-def _check_state(hass, mock_node_status, state):
+def _check_state(hass, mock_node, mock_node_status, state):
     assert state.state == mode_to_hvac_mode(mock_node_status["mode"])
     assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
 
@@ -79,9 +79,24 @@ def _check_state(hass, mock_node_status, state):
         convert_temp(hass, mock_node_status["units"], float(mock_node_status["mtemp"])),
     )
     # ATTR_TEMPERATURE actually stores the target temperature
+    if mock_node["type"] == "htr_mod":
+        if mock_node_status["selected_temp"] == "comfort":
+            target_temp = float(mock_node_status["comfort_temp"])
+        elif mock_node_status["selected_temp"] == "eco":
+            target_temp = float(mock_node_status["comfort_temp"]) - float(
+                mock_node_status["eco_offset"]
+            )
+        elif mock_node_status["selected_temp"] == "ice":
+            target_temp = float(mock_node_status["ice_temp"])
+        else:
+            raise ValueError(
+                f"Unknown selected_temp value {mock_node_status['selected_temp']}"
+            )
+    else:
+        target_temp = float(mock_node_status["stemp"])
     assert round_temp(hass, state.attributes[ATTR_TEMPERATURE]) == round_temp(
         hass,
-        convert_temp(hass, mock_node_status["units"], float(mock_node_status["stemp"])),
+        convert_temp(hass, mock_node_status["units"], target_temp),
     )
 
     assert state.attributes[ATTR_HVAC_ACTION] == status_to_hvac_action(mock_node_status)
@@ -107,7 +122,7 @@ async def test_basic(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            _check_state(hass, mock_node_status, state)
+            _check_state(hass, mock_node, mock_node_status, state)
 
             # check we opened a socket and the run function was awaited
             socket = mock_smartbox.sockets[mock_device["dev_id"]]
@@ -128,7 +143,7 @@ async def test_basic(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            _check_state(hass, mock_node_status, new_state)
+            _check_state(hass, mock_node, mock_node_status, new_state)
 
 
 async def test_unavailable(hass, mock_smartbox):
@@ -144,7 +159,7 @@ async def test_unavailable(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            _check_state(hass, mock_node_status, state)
+            _check_state(hass, mock_node, mock_node_status, state)
 
             mock_node_status = mock_smartbox.generate_socket_node_unavailable(
                 mock_device, mock_node
@@ -158,7 +173,7 @@ async def test_unavailable(hass, mock_smartbox):
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            _check_state(hass, mock_node_status, state)
+            _check_state(hass, mock_node, mock_node_status, state)
 
 
 async def test_away(hass, mock_smartbox):
@@ -265,20 +280,40 @@ async def test_set_target_temp(hass, mock_smartbox):
             state = hass.states.get(entity_id)
             old_target_temp = state.attributes[ATTR_TEMPERATURE]
 
-            await hass.services.async_call(
-                CLIMATE_DOMAIN,
-                SERVICE_SET_TEMPERATURE,
-                {
-                    ATTR_TEMPERATURE: old_target_temp + 1,
-                    ATTR_ENTITY_ID: get_entity_id(mock_node, CLIMATE_DOMAIN),
-                },
-                blocking=True,
+            mock_node_status = mock_smartbox.session.get_status(
+                mock_device["dev_id"], mock_node
             )
+            if (
+                mock_node["type"] == "htr_mod"
+                and mock_node_status["selected_temp"] == "ice"
+            ):
+                # We can't set temperatures in ice mode
+                with pytest.raises(ValueError) as e_info:
+                    await hass.services.async_call(
+                        CLIMATE_DOMAIN,
+                        SERVICE_SET_TEMPERATURE,
+                        {
+                            ATTR_TEMPERATURE: old_target_temp + 1,
+                            ATTR_ENTITY_ID: get_entity_id(mock_node, CLIMATE_DOMAIN),
+                        },
+                        blocking=True,
+                    )
+                assert "Can't set temperature" in e_info.exconly()
+            else:
+                await hass.services.async_call(
+                    CLIMATE_DOMAIN,
+                    SERVICE_SET_TEMPERATURE,
+                    {
+                        ATTR_TEMPERATURE: old_target_temp + 1,
+                        ATTR_ENTITY_ID: get_entity_id(mock_node, CLIMATE_DOMAIN),
+                    },
+                    blocking=True,
+                )
 
-            await hass.helpers.entity_component.async_update_entity(entity_id)
-            state = hass.states.get(entity_id)
-            new_target_temp = state.attributes[ATTR_TEMPERATURE]
-            assert new_target_temp == pytest.approx(old_target_temp + 1)
+                await hass.helpers.entity_component.async_update_entity(entity_id)
+                state = hass.states.get(entity_id)
+                new_target_temp = state.attributes[ATTR_TEMPERATURE]
+                assert new_target_temp == pytest.approx(old_target_temp + 1)
 
 
 async def test_hvac_action(hass, mock_smartbox):

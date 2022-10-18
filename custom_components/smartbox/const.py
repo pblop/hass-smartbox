@@ -20,6 +20,8 @@ DEFAULT_SESSION_BACKOFF_FACTOR = 0.1
 DEFAULT_SOCKET_RECONNECT_ATTEMPTS = 3
 DEFAULT_SOCKET_BACKOFF_FACTOR = 0.1
 
+GITHUB_ISSUES_URL = "https://github.com/graham33/hass-smartbox/issues"
+
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
 
 SMARTBOX_DEVICES = "smartbox_devices"

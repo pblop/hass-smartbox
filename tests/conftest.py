@@ -33,16 +33,21 @@ def skip_notifications_fixture():
         yield
 
 
+def _get_node_status(units):
+    data = deepcopy(MOCK_SMARTBOX_NODE_STATUS_C)
+    if units == "F":
+        for dev_id in data:
+            for i, _ in enumerate(data[dev_id]):
+                data[dev_id][i].update(MOCK_SMARTBOX_NODE_STATUS_F[dev_id][i])
+    return data
+
+
 @pytest.fixture(params=["C", "F"])
 def mock_smartbox(request):
     mock_smartbox = MockSmartbox(
         MOCK_SMARTBOX_CONFIG,
         MOCK_SMARTBOX_NODE_INFO,
-        deepcopy(
-            MOCK_SMARTBOX_NODE_STATUS_C
-            if request.param == "C"
-            else MOCK_SMARTBOX_NODE_STATUS_F
-        ),
+        _get_node_status(request.param),
     )
 
     with patch(
@@ -63,11 +68,7 @@ def mock_smartbox_unavailable(request):
     mock_smartbox = MockSmartbox(
         MOCK_SMARTBOX_CONFIG,
         MOCK_SMARTBOX_NODE_INFO,
-        deepcopy(
-            MOCK_SMARTBOX_NODE_STATUS_C
-            if request.param == "C"
-            else MOCK_SMARTBOX_NODE_STATUS_F
-        ),
+        _get_node_status(request.param),
         False,
     )
 
