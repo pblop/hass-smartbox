@@ -13,6 +13,7 @@ from mocks import MockSmartbox
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
+
 # This fixture enables loading custom integrations in all tests.
 # Remove to enable selective use of this fixture
 @pytest.fixture(autouse=True)
