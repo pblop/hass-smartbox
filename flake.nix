@@ -26,6 +26,7 @@
       ];
       packages = with pkgs; [
         black
+        python3Packages.flake8
       ];
     };
   };
