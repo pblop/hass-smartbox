@@ -31,3 +31,5 @@ then
 fi
 
 black --check .
+
+flake8
