@@ -152,6 +152,7 @@ MOCK_SMARTBOX_NODE_STATUS_C = {
     ],
     "test_device_id_2": [
         {
+            "on": True,
             "mtemp": "25.7",
             "selected_temp": "comfort",
             "comfort_temp": "20.3",
@@ -165,6 +166,7 @@ MOCK_SMARTBOX_NODE_STATUS_C = {
             "mode": "auto",
         },
         {
+            "on": True,
             "mtemp": "19.2",
             "selected_temp": "eco",
             "comfort_temp": "24.3",
@@ -178,6 +180,7 @@ MOCK_SMARTBOX_NODE_STATUS_C = {
             "mode": "manual",
         },
         {
+            "on": True,
             "mtemp": "17.2",
             "selected_temp": "ice",
             "comfort_temp": "23.3",

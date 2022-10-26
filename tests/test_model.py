@@ -6,6 +6,11 @@ from unittest.mock import (
     patch,
 )
 
+from homeassistant.components.climate.const import (
+    HVAC_MODE_AUTO,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
+)
 from custom_components.smartbox.const import (
     DOMAIN,
     CONF_ACCOUNTS,
@@ -21,9 +26,11 @@ from custom_components.smartbox.const import (
 from custom_components.smartbox.model import (
     create_smartbox_device,
     get_devices,
+    get_hvac_mode,
     get_target_temperature,
     is_heater_node,
     is_supported_node,
+    set_hvac_mode_args,
     set_temperature_args,
     SmartboxDevice,
     SmartboxNode,
@@ -357,6 +364,14 @@ def test_get_target_temperature():
             },
         )
     assert "ice_temp" in exc_info.exconly()
+    with pytest.raises(KeyError) as exc_info:
+        get_target_temperature(
+            "htr_mod",
+            {
+                "selected_temp": "blah",
+            },
+        )
+    assert "Unexpected 'selected_temp' value blah" in exc_info.exconly()
 
 
 def test_set_temperature_args():
@@ -433,3 +448,78 @@ def test_set_temperature_args():
             17.2,
         )
     assert "eco_offset" in exc_info.exconly()
+    with pytest.raises(KeyError) as exc_info:
+        set_temperature_args(
+            "htr_mod",
+            {
+                "mode": "auto",
+                "selected_temp": "blah",
+                "comfort_temp": "17.2",
+                "units": "C",
+            },
+            17.2,
+        )
+    assert "Unexpected 'selected_temp' value blah" in exc_info.exconly()
+
+
+def test_get_hvac_mode():
+    assert get_hvac_mode("htr", {"mode": "off"}) == HVAC_MODE_OFF
+    assert get_hvac_mode("acm", {"mode": "auto"}) == HVAC_MODE_AUTO
+    assert get_hvac_mode("htr", {"mode": "modified_auto"}) == HVAC_MODE_AUTO
+    assert get_hvac_mode("acm", {"mode": "manual"}) == HVAC_MODE_HEAT
+    with pytest.raises(ValueError):
+        get_hvac_mode("htr", {"mode": "blah"})
+    assert get_hvac_mode("htr_mod", {"on": True, "mode": "auto"}) == HVAC_MODE_AUTO
+    assert (
+        get_hvac_mode("htr_mod", {"on": True, "mode": "self_learn"}) == HVAC_MODE_AUTO
+    )
+    assert get_hvac_mode("htr_mod", {"on": True, "mode": "manual"}) == HVAC_MODE_HEAT
+    assert get_hvac_mode("htr_mod", {"on": False, "mode": "auto"}) == HVAC_MODE_OFF
+    assert (
+        get_hvac_mode("htr_mod", {"on": False, "mode": "self_learn"}) == HVAC_MODE_OFF
+    )
+    assert get_hvac_mode("htr_mod", {"on": False, "mode": "manual"}) == HVAC_MODE_OFF
+    with pytest.raises(ValueError):
+        get_hvac_mode("htr_mod", {"on": True, "mode": "blah"})
+    with pytest.raises(KeyError) as exc_info:
+        get_hvac_mode("htr_mod", {"mode": "manual"})
+    assert "on" in exc_info.exconly()
+
+
+def test_set_hvac_mode_args():
+    assert set_hvac_mode_args("htr", {}, HVAC_MODE_OFF) == {"mode": "off"}
+    assert set_hvac_mode_args("acm", {}, HVAC_MODE_AUTO) == {"mode": "auto"}
+    assert set_hvac_mode_args("htr", {}, HVAC_MODE_HEAT) == {"mode": "manual"}
+    with pytest.raises(ValueError):
+        set_hvac_mode_args("htr", {}, "blah")
+    assert set_hvac_mode_args("htr_mod", {}, HVAC_MODE_OFF,) == {
+        "on": False,
+    }
+    assert set_hvac_mode_args("htr_mod", {}, HVAC_MODE_AUTO,) == {
+        "on": True,
+        "mode": "auto",
+    }
+    assert set_hvac_mode_args(
+        "htr_mod",
+        {
+            "selected_temp": "comfort",
+        },
+        HVAC_MODE_HEAT,
+    ) == {
+        "on": True,
+        "mode": "manual",
+        "selected_temp": "comfort",
+    }
+    with pytest.raises(ValueError):
+        set_hvac_mode_args(
+            "htr_mod",
+            {},
+            "blah",
+        )
+    with pytest.raises(KeyError) as exc_info:
+        set_hvac_mode_args(
+            "htr_mod",
+            {},
+            HVAC_MODE_HEAT,
+        )
+    assert "selected_temp" in exc_info.exconly()

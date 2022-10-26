@@ -6,6 +6,11 @@ from homeassistant.const import (
     TEMP_CELSIUS,
     TEMP_FAHRENHEIT,
 )
+from homeassistant.components.climate.const import (
+    HVAC_MODE_AUTO,
+    HVAC_MODE_HEAT,
+    HVAC_MODE_OFF,
+)
 from homeassistant.core import HomeAssistant
 from smartbox import Session, SocketSession
 from typing import Any, Dict, List, Union
@@ -316,3 +321,56 @@ def set_temperature_args(
             "stemp": str(temp),
             "units": status["units"],
         }
+
+
+def get_hvac_mode(node_type: str, status: Dict[str, Any]) -> str:
+    _check_status_key("mode", node_type, status)
+    if status["mode"] == "off":
+        return HVAC_MODE_OFF
+    elif node_type == "htr_mod" and not status["on"]:
+        return HVAC_MODE_OFF
+    elif status["mode"] == "manual":
+        return HVAC_MODE_HEAT
+    elif status["mode"] == "auto":
+        return HVAC_MODE_AUTO
+    elif status["mode"] == "modified_auto":
+        # This occurs when the temperature is modified while in auto mode.
+        # Mapping it to auto seems to make this most sense
+        return HVAC_MODE_AUTO
+    elif status["mode"] == "self_learn":
+        return HVAC_MODE_AUTO
+    else:
+        _LOGGER.error(f"Unknown smartbox node mode {status['mode']}")
+        raise ValueError(f"Unknown smartbox node mode {status['mode']}")
+
+
+def set_hvac_mode_args(
+    node_type: str, status: Dict[str, Any], hvac_mode: str
+) -> Dict[str, Any]:
+    if node_type == "htr_mod":
+        if hvac_mode == HVAC_MODE_OFF:
+            return {"on": False}
+        elif hvac_mode == HVAC_MODE_HEAT:
+            # We need to pass these status keys on when setting the mode
+            required_status_keys = ["selected_temp"]
+            for key in required_status_keys:
+                _check_status_key(key, node_type, status)
+            hvac_mode_args = {k: status[k] for k in required_status_keys}
+            hvac_mode_args["on"] = True
+            hvac_mode_args["mode"] = "manual"
+            return hvac_mode_args
+        elif hvac_mode == HVAC_MODE_AUTO:
+            # TODO: differentiate other modes we consider 'auto', e.g.
+            # self_learn
+            return {"on": True, "mode": "auto"}
+        else:
+            raise ValueError(f"Unsupported hvac mode {hvac_mode}")
+    else:
+        if hvac_mode == HVAC_MODE_OFF:
+            return {"mode": "off"}
+        elif hvac_mode == HVAC_MODE_HEAT:
+            return {"mode": "manual"}
+        elif hvac_mode == HVAC_MODE_AUTO:
+            return {"mode": "auto"}
+        else:
+            raise ValueError(f"Unsupported hvac mode {hvac_mode}")

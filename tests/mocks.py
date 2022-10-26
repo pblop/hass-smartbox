@@ -37,6 +37,7 @@ def mock_node(dev_id, addr, node_type, mode="auto"):
         "mode": mode,
     }
     if node_type == "htr_mod":
+        node.status["on"] = True
         node.status["selected_temp"] = "comfort"
         node.status["comfort_temp"] = "22"
         node.status["eco_offset"] = "2"

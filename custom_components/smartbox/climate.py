@@ -20,11 +20,13 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import MagicMock
 
-from .const import DOMAIN, GITHUB_ISSUES_URL, SMARTBOX_NODES
+from .const import DOMAIN, SMARTBOX_NODES
 from .model import (
+    get_hvac_mode,
     get_target_temperature,
     get_temperature_unit,
     is_heater_node,
+    set_hvac_mode_args,
     set_temperature_args,
     SmartboxNode,
 )
@@ -52,37 +54,6 @@ async def async_setup_platform(
         True,
     )
     _LOGGER.debug("Finished setting up Smartbox climate platform")
-
-
-def mode_to_hvac_mode(mode: str) -> str:
-    if mode == "off":
-        return HVAC_MODE_OFF
-    elif mode == "manual":
-        return HVAC_MODE_HEAT
-    elif mode == "auto":
-        return HVAC_MODE_AUTO
-    elif mode == "modified_auto":
-        # This occurs when the temperature is modified while in auto mode.
-        # Mapping it to auto seems to make this most sense
-        return HVAC_MODE_AUTO
-    elif mode == "self_learn":
-        return HVAC_MODE_AUTO
-    else:
-        _LOGGER.error(f"Unknown smartbox node mode {mode}")
-        raise ValueError(f"Unknown smartbox node mode {mode}")
-
-
-def hvac_mode_to_mode(hvac_mode: str) -> str:
-    if hvac_mode == HVAC_MODE_OFF:
-        return "off"
-    elif hvac_mode == HVAC_MODE_HEAT:
-        return "manual"
-    elif hvac_mode == HVAC_MODE_AUTO:
-        # TODO: we have no way to differentiate other modes we consider 'auto',
-        # e.g. self_learn
-        return "auto"
-    else:
-        raise ValueError(f"Unsupported hvac mode {hvac_mode}")
 
 
 def status_to_hvac_action(status: Dict[str, Union[float, str, bool]]) -> str:
@@ -136,13 +107,6 @@ class SmartboxHeater(ClimateEntity):
         """Return the current temperature."""
         return float(self._status["mtemp"])
 
-    def _check_status_key(self, key):
-        if key not in self._status:
-            raise KeyError(
-                f"'{key}' not found in {self._node.node_type} - please report to {GITHUB_ISSUES_URL}. "
-                f"status: {self._status}"
-            )
-
     @property
     def target_temperature(self) -> float:
         """Return the target temperature."""
@@ -164,7 +128,7 @@ class SmartboxHeater(ClimateEntity):
     @property
     def hvac_mode(self) -> str:
         """Return hvac target hvac state."""
-        hvac_mode = mode_to_hvac_mode(self._status["mode"])
+        hvac_mode = get_hvac_mode(self._node.node_type, self._status)
         return hvac_mode
 
     @property
@@ -176,7 +140,8 @@ class SmartboxHeater(ClimateEntity):
     def set_hvac_mode(self, hvac_mode):
         """Set operation mode."""
         _LOGGER.debug(f"Setting HVAC mode to {hvac_mode}")
-        self._node.set_status(mode=hvac_mode_to_mode(hvac_mode))
+        status_args = set_hvac_mode_args(self._node.node_type, self._status, hvac_mode)
+        self._node.set_status(**status_args)
 
     @property
     def preset_mode(self) -> str:

@@ -28,8 +28,7 @@ from homeassistant.components.climate.const import (
 )
 
 from custom_components.smartbox.climate import (
-    hvac_mode_to_mode,
-    mode_to_hvac_mode,
+    get_hvac_mode,
     status_to_hvac_action,
 )
 
@@ -45,24 +44,6 @@ from mocks import (
 _LOGGER = logging.getLogger(__name__)
 
 
-def test_mode_to_hvac_mode():
-    assert mode_to_hvac_mode("off") == HVAC_MODE_OFF
-    assert mode_to_hvac_mode("auto") == HVAC_MODE_AUTO
-    assert mode_to_hvac_mode("modified_auto") == HVAC_MODE_AUTO
-    assert mode_to_hvac_mode("self_learn") == HVAC_MODE_AUTO
-    assert mode_to_hvac_mode("manual") == HVAC_MODE_HEAT
-    with pytest.raises(ValueError):
-        mode_to_hvac_mode("blah")
-
-
-def test_hvac_mode_to_mode():
-    assert hvac_mode_to_mode(HVAC_MODE_OFF) == "off"
-    assert hvac_mode_to_mode(HVAC_MODE_AUTO) == "auto"
-    assert hvac_mode_to_mode(HVAC_MODE_HEAT) == "manual"
-    with pytest.raises(ValueError):
-        hvac_mode_to_mode("blah")
-
-
 def test_status_to_hvac_action():
     assert status_to_hvac_action({"active": True}) == CURRENT_HVAC_HEAT
     assert status_to_hvac_action({"active": False}) == CURRENT_HVAC_IDLE
@@ -71,7 +52,7 @@ def test_status_to_hvac_action():
 
 
 def _check_state(hass, mock_node, mock_node_status, state):
-    assert state.state == mode_to_hvac_mode(mock_node_status["mode"])
+    assert state.state == get_hvac_mode(mock_node["type"], mock_node_status)
     assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
 
     assert round_temp(hass, state.attributes[ATTR_CURRENT_TEMPERATURE]) == round_temp(
@@ -227,6 +208,8 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
+            if mock_node["type"] == "htr_mod":
+                assert mock_node_status["on"]
             assert mock_node_status["mode"] == "auto"
 
     await hass.services.async_call(
@@ -246,6 +229,8 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
+            if mock_node["type"] == "htr_mod":
+                assert mock_node_status["on"]
             assert mock_node_status["mode"] == "manual"
 
     await hass.services.async_call(
@@ -265,7 +250,10 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            assert mock_node_status["mode"] == "off"
+            if mock_node["type"] == "htr_mod":
+                assert not mock_node_status["on"]
+            else:
+                assert mock_node_status["mode"] == "off"
 
 
 async def test_set_target_temp(hass, mock_smartbox):
