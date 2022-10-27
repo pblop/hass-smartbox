@@ -339,6 +339,8 @@ def get_hvac_mode(node_type: str, status: Dict[str, Any]) -> str:
         return HVAC_MODE_AUTO
     elif status["mode"] == "self_learn":
         return HVAC_MODE_AUTO
+    elif status["mode"] == "presence":
+        return HVAC_MODE_AUTO
     else:
         _LOGGER.error(f"Unknown smartbox node mode {status['mode']}")
         raise ValueError(f"Unknown smartbox node mode {status['mode']}")
@@ -360,8 +362,8 @@ def set_hvac_mode_args(
             hvac_mode_args["mode"] = "manual"
             return hvac_mode_args
         elif hvac_mode == HVAC_MODE_AUTO:
-            # TODO: differentiate other modes we consider 'auto', e.g.
-            # self_learn
+            # TODO: differentiate other modes we consider 'auto' (self_learn
+            # and presence)
             return {"on": True, "mode": "auto"}
         else:
             raise ValueError(f"Unsupported hvac mode {hvac_mode}")

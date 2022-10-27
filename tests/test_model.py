@@ -473,11 +473,13 @@ def test_get_hvac_mode():
     assert (
         get_hvac_mode("htr_mod", {"on": True, "mode": "self_learn"}) == HVAC_MODE_AUTO
     )
+    assert get_hvac_mode("htr_mod", {"on": True, "mode": "presence"}) == HVAC_MODE_AUTO
     assert get_hvac_mode("htr_mod", {"on": True, "mode": "manual"}) == HVAC_MODE_HEAT
     assert get_hvac_mode("htr_mod", {"on": False, "mode": "auto"}) == HVAC_MODE_OFF
     assert (
         get_hvac_mode("htr_mod", {"on": False, "mode": "self_learn"}) == HVAC_MODE_OFF
     )
+    assert get_hvac_mode("htr_mod", {"on": False, "mode": "presence"}) == HVAC_MODE_OFF
     assert get_hvac_mode("htr_mod", {"on": False, "mode": "manual"}) == HVAC_MODE_OFF
     with pytest.raises(ValueError):
         get_hvac_mode("htr_mod", {"on": True, "mode": "blah"})

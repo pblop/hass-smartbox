@@ -93,8 +93,8 @@ These are modelled as Home Assistant Climate entities.
   * Supported presets: 'home and 'away'
 * `htr_mod`
   * Supported modes: 'manual' and 'auto'
-  * Semi-supported modes: 'self_learn' (mapped to 'auto')
-  * Unsupported modes: 'presence'
+  * Semi-supported modes: 'self_learn' and 'presence' (mapped to 'auto', can't
+    be selected via HA at the moment)
   * Supported presets: 'home and 'away'
   * Unsupported presets: 'comfort', 'eco' and 'ice'
 
