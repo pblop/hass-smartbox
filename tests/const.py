@@ -162,7 +162,6 @@ MOCK_SMARTBOX_NODE_STATUS_C = {
             "sync_status": "ok",
             "locked": False,
             "active": True,
-            "power": "510",
             "mode": "auto",
         },
         {
@@ -176,7 +175,6 @@ MOCK_SMARTBOX_NODE_STATUS_C = {
             "sync_status": "ok",
             "locked": False,
             "active": True,
-            "power": "620",
             "mode": "manual",
         },
         {
@@ -190,7 +188,6 @@ MOCK_SMARTBOX_NODE_STATUS_C = {
             "sync_status": "ok",
             "locked": False,
             "active": True,
-            "power": "0",
             "mode": "manual",
         },
     ],

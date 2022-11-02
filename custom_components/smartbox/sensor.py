@@ -42,7 +42,7 @@ async def async_setup_platform(
         [
             PowerSensor(node)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
-            if is_heater_node(node)
+            if is_heater_node(node) and node.node_type != "htr_mod"
         ],
         True,
     )

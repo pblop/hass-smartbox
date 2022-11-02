@@ -174,7 +174,8 @@ class MockSmartbox(object):
             status["stemp"] = str(float(status["stemp"]) + temp_increment)
         # always set back to in-sync status
         status["sync_status"] = "ok"
-        status["power"] = str(float(status["power"]) + 1)
+        if mock_node["type"] != "htr_mod":
+            status["power"] = str(float(status["power"]) + 1)
         self._socket_node_status[dev_id][addr] = status
 
         self._send_socket_update(dev_id, addr)
