@@ -13,7 +13,7 @@ import logging
 from typing import Any, Callable, Dict, Optional, Union
 from unittest.mock import MagicMock
 
-from .const import DOMAIN, SMARTBOX_NODES
+from .const import DOMAIN, HEATER_NODE_TYPE_HTR_MOD, SMARTBOX_NODES
 from .model import get_temperature_unit, is_heater_node, SmartboxNode
 
 _LOGGER = logging.getLogger(__name__)
@@ -42,7 +42,7 @@ async def async_setup_platform(
         [
             PowerSensor(node)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
-            if is_heater_node(node) and node.node_type != "htr_mod"
+            if is_heater_node(node) and node.node_type != HEATER_NODE_TYPE_HTR_MOD
         ],
         True,
     )

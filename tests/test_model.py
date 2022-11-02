@@ -22,6 +22,9 @@ from custom_components.smartbox.const import (
     CONF_SESSION_BACKOFF_FACTOR,
     CONF_SOCKET_RECONNECT_ATTEMPTS,
     CONF_SOCKET_BACKOFF_FACTOR,
+    HEATER_NODE_TYPE_ACM,
+    HEATER_NODE_TYPE_HTR,
+    HEATER_NODE_TYPE_HTR_MOD,
 )
 from custom_components.smartbox.model import (
     create_smartbox_device,
@@ -155,7 +158,10 @@ async def test_smartbox_device_on_dev_data(hass):
         new_callable=NonCallableMock,
     ):
         device = SmartboxDevice(dev_id, mock_session, 5, 0.3)
-        device._nodes = {("htr", 1): mock_node_1, ("thm", 2): mock_node_2}
+        device._nodes = {
+            (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
+            ("thm", 2): mock_node_2,
+        }
 
         mock_dev_data = {"away_status": {"away": True}}
         device.on_dev_data(mock_dev_data)
@@ -179,7 +185,10 @@ async def test_smartbox_device_on_update(hass, caplog):
         new_callable=NonCallableMock,
     ):
         device = SmartboxDevice(dev_id, mock_session, 2, 0.1)
-        device._nodes = {("htr", 1): mock_node_1, ("thm", 2): mock_node_2}
+        device._nodes = {
+            (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
+            ("thm", 2): mock_node_2,
+        }
 
         mock_status = {"foo": "bar"}
         mock_update = {"path": "/htr/1/status", "body": mock_status}
@@ -218,7 +227,7 @@ async def test_smartbox_device_ignored_messages(hass, caplog):
         new_callable=NonCallableMock,
     ):
         device = SmartboxDevice(dev_id, mock_session, 1, 0.4)
-        device._nodes = {("htr", 1): mock_node_1}
+        device._nodes = {(HEATER_NODE_TYPE_HTR, 1): mock_node_1}
 
         # Test we error on message types we haven't seen
         mock_update = {"path": "/htr/1/new_update", "body": {}}
@@ -284,9 +293,9 @@ async def test_smartbox_node(hass):
 def test_is_heater_node():
     dev_id = "test_device_id_1"
     addr = 1
-    assert is_heater_node(mock_node(dev_id, addr, "htr"))
-    assert is_heater_node(mock_node(dev_id, addr, "htr_mod"))
-    assert is_heater_node(mock_node(dev_id, addr, "acm"))
+    assert is_heater_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_HTR))
+    assert is_heater_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_HTR_MOD))
+    assert is_heater_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_ACM))
     assert not is_heater_node(mock_node(dev_id, addr, "thm"))
     assert not is_heater_node(mock_node(dev_id, addr, "sldkfjsd"))
 
@@ -294,22 +303,22 @@ def test_is_heater_node():
 def test_is_supported_node():
     dev_id = "test_device_id_1"
     addr = 1
-    assert is_supported_node(mock_node(dev_id, addr, "htr"))
-    assert is_supported_node(mock_node(dev_id, addr, "htr_mod"))
-    assert is_supported_node(mock_node(dev_id, addr, "acm"))
+    assert is_supported_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_HTR))
+    assert is_supported_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_HTR_MOD))
+    assert is_supported_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_ACM))
     assert not is_supported_node(mock_node(dev_id, addr, "thm"))
     assert not is_supported_node(mock_node(dev_id, addr, "oijijr"))
 
 
 def test_get_target_temperature():
-    assert get_target_temperature("htr", {"stemp": "22.5"}) == 22.5
-    assert get_target_temperature("acm", {"stemp": "12.6"}) == 12.6
+    assert get_target_temperature(HEATER_NODE_TYPE_HTR, {"stemp": "22.5"}) == 22.5
+    assert get_target_temperature(HEATER_NODE_TYPE_ACM, {"stemp": "12.6"}) == 12.6
     with pytest.raises(KeyError):
-        get_target_temperature("htr", {"xxx": "22.5"})
+        get_target_temperature(HEATER_NODE_TYPE_HTR, {"xxx": "22.5"})
 
     assert (
         get_target_temperature(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "selected_temp": "comfort",
                 "comfort_temp": "17.2",
@@ -319,7 +328,7 @@ def test_get_target_temperature():
     )
     assert (
         get_target_temperature(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "selected_temp": "eco",
                 "comfort_temp": "17.2",
@@ -330,7 +339,7 @@ def test_get_target_temperature():
     )
     assert (
         get_target_temperature(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "selected_temp": "ice",
                 "ice_temp": "7",
@@ -341,7 +350,7 @@ def test_get_target_temperature():
 
     with pytest.raises(KeyError) as exc_info:
         get_target_temperature(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "selected_temp": "comfort",
             },
@@ -349,7 +358,7 @@ def test_get_target_temperature():
     assert "comfort_temp" in exc_info.exconly()
     with pytest.raises(KeyError) as exc_info:
         get_target_temperature(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "selected_temp": "eco",
                 "comfort_temp": "17.2",
@@ -358,7 +367,7 @@ def test_get_target_temperature():
     assert "eco_offset" in exc_info.exconly()
     with pytest.raises(KeyError) as exc_info:
         get_target_temperature(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "selected_temp": "ice",
             },
@@ -366,7 +375,7 @@ def test_get_target_temperature():
     assert "ice_temp" in exc_info.exconly()
     with pytest.raises(KeyError) as exc_info:
         get_target_temperature(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "selected_temp": "blah",
             },
@@ -375,20 +384,20 @@ def test_get_target_temperature():
 
 
 def test_set_temperature_args():
-    assert set_temperature_args("htr", {"units": "C"}, 21.7) == {
+    assert set_temperature_args(HEATER_NODE_TYPE_HTR, {"units": "C"}, 21.7) == {
         "stemp": "21.7",
         "units": "C",
     }
-    assert set_temperature_args("acm", {"units": "F"}, 78) == {
+    assert set_temperature_args(HEATER_NODE_TYPE_ACM, {"units": "F"}, 78) == {
         "stemp": "78",
         "units": "F",
     }
     with pytest.raises(KeyError) as exc_info:
-        set_temperature_args("htr", {}, 24.7)
+        set_temperature_args(HEATER_NODE_TYPE_HTR, {}, 24.7)
     assert "units" in exc_info.exconly()
 
     assert set_temperature_args(
-        "htr_mod",
+        HEATER_NODE_TYPE_HTR_MOD,
         {
             "mode": "auto",
             "selected_temp": "comfort",
@@ -406,7 +415,7 @@ def test_set_temperature_args():
         "units": "C",
     }
     assert set_temperature_args(
-        "htr_mod",
+        HEATER_NODE_TYPE_HTR_MOD,
         {
             "mode": "auto",
             "selected_temp": "eco",
@@ -425,7 +434,7 @@ def test_set_temperature_args():
     }
     with pytest.raises(ValueError) as exc_info:
         set_temperature_args(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "mode": "auto",
                 "selected_temp": "ice",
@@ -438,7 +447,7 @@ def test_set_temperature_args():
 
     with pytest.raises(KeyError) as exc_info:
         set_temperature_args(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "mode": "auto",
                 "selected_temp": "eco",
@@ -450,7 +459,7 @@ def test_set_temperature_args():
     assert "eco_offset" in exc_info.exconly()
     with pytest.raises(KeyError) as exc_info:
         set_temperature_args(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {
                 "mode": "auto",
                 "selected_temp": "blah",
@@ -463,46 +472,74 @@ def test_set_temperature_args():
 
 
 def test_get_hvac_mode():
-    assert get_hvac_mode("htr", {"mode": "off"}) == HVAC_MODE_OFF
-    assert get_hvac_mode("acm", {"mode": "auto"}) == HVAC_MODE_AUTO
-    assert get_hvac_mode("htr", {"mode": "modified_auto"}) == HVAC_MODE_AUTO
-    assert get_hvac_mode("acm", {"mode": "manual"}) == HVAC_MODE_HEAT
-    with pytest.raises(ValueError):
-        get_hvac_mode("htr", {"mode": "blah"})
-    assert get_hvac_mode("htr_mod", {"on": True, "mode": "auto"}) == HVAC_MODE_AUTO
+    assert get_hvac_mode(HEATER_NODE_TYPE_HTR, {"mode": "off"}) == HVAC_MODE_OFF
+    assert get_hvac_mode(HEATER_NODE_TYPE_ACM, {"mode": "auto"}) == HVAC_MODE_AUTO
     assert (
-        get_hvac_mode("htr_mod", {"on": True, "mode": "self_learn"}) == HVAC_MODE_AUTO
+        get_hvac_mode(HEATER_NODE_TYPE_HTR, {"mode": "modified_auto"}) == HVAC_MODE_AUTO
     )
-    assert get_hvac_mode("htr_mod", {"on": True, "mode": "presence"}) == HVAC_MODE_AUTO
-    assert get_hvac_mode("htr_mod", {"on": True, "mode": "manual"}) == HVAC_MODE_HEAT
-    assert get_hvac_mode("htr_mod", {"on": False, "mode": "auto"}) == HVAC_MODE_OFF
-    assert (
-        get_hvac_mode("htr_mod", {"on": False, "mode": "self_learn"}) == HVAC_MODE_OFF
-    )
-    assert get_hvac_mode("htr_mod", {"on": False, "mode": "presence"}) == HVAC_MODE_OFF
-    assert get_hvac_mode("htr_mod", {"on": False, "mode": "manual"}) == HVAC_MODE_OFF
+    assert get_hvac_mode(HEATER_NODE_TYPE_ACM, {"mode": "manual"}) == HVAC_MODE_HEAT
     with pytest.raises(ValueError):
-        get_hvac_mode("htr_mod", {"on": True, "mode": "blah"})
+        get_hvac_mode(HEATER_NODE_TYPE_HTR, {"mode": "blah"})
+    assert (
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "auto"})
+        == HVAC_MODE_AUTO
+    )
+    assert (
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "self_learn"})
+        == HVAC_MODE_AUTO
+    )
+    assert (
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "presence"})
+        == HVAC_MODE_AUTO
+    )
+    assert (
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "manual"})
+        == HVAC_MODE_HEAT
+    )
+    assert (
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": False, "mode": "auto"})
+        == HVAC_MODE_OFF
+    )
+    assert (
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": False, "mode": "self_learn"})
+        == HVAC_MODE_OFF
+    )
+    assert (
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": False, "mode": "presence"})
+        == HVAC_MODE_OFF
+    )
+    assert (
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": False, "mode": "manual"})
+        == HVAC_MODE_OFF
+    )
+    with pytest.raises(ValueError):
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"on": True, "mode": "blah"})
     with pytest.raises(KeyError) as exc_info:
-        get_hvac_mode("htr_mod", {"mode": "manual"})
+        get_hvac_mode(HEATER_NODE_TYPE_HTR_MOD, {"mode": "manual"})
     assert "on" in exc_info.exconly()
 
 
 def test_set_hvac_mode_args():
-    assert set_hvac_mode_args("htr", {}, HVAC_MODE_OFF) == {"mode": "off"}
-    assert set_hvac_mode_args("acm", {}, HVAC_MODE_AUTO) == {"mode": "auto"}
-    assert set_hvac_mode_args("htr", {}, HVAC_MODE_HEAT) == {"mode": "manual"}
+    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, HVAC_MODE_OFF) == {
+        "mode": "off"
+    }
+    assert set_hvac_mode_args(HEATER_NODE_TYPE_ACM, {}, HVAC_MODE_AUTO) == {
+        "mode": "auto"
+    }
+    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, HVAC_MODE_HEAT) == {
+        "mode": "manual"
+    }
     with pytest.raises(ValueError):
-        set_hvac_mode_args("htr", {}, "blah")
-    assert set_hvac_mode_args("htr_mod", {}, HVAC_MODE_OFF,) == {
+        set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, "blah")
+    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR_MOD, {}, HVAC_MODE_OFF,) == {
         "on": False,
     }
-    assert set_hvac_mode_args("htr_mod", {}, HVAC_MODE_AUTO,) == {
+    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR_MOD, {}, HVAC_MODE_AUTO,) == {
         "on": True,
         "mode": "auto",
     }
     assert set_hvac_mode_args(
-        "htr_mod",
+        HEATER_NODE_TYPE_HTR_MOD,
         {
             "selected_temp": "comfort",
         },
@@ -514,13 +551,13 @@ def test_set_hvac_mode_args():
     }
     with pytest.raises(ValueError):
         set_hvac_mode_args(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {},
             "blah",
         )
     with pytest.raises(KeyError) as exc_info:
         set_hvac_mode_args(
-            "htr_mod",
+            HEATER_NODE_TYPE_HTR_MOD,
             {},
             HVAC_MODE_HEAT,
         )

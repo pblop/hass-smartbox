@@ -16,7 +16,11 @@ from smartbox import Session, SocketSession
 from typing import Any, Dict, List, Union
 from unittest.mock import MagicMock
 
-from .const import GITHUB_ISSUES_URL
+from .const import (
+    GITHUB_ISSUES_URL,
+    HEATER_NODE_TYPE_HTR_MOD,
+    HEATER_NODE_TYPES,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -25,8 +29,6 @@ _NODE_STATUS_UPDATE_RE = re.compile(r"^/([^/]+)/(\d+)/status")
 _MESSAGE_SKIP_RE = re.compile(
     r"^/connected|/mgr/nodes|/([^/]+)/(\d+)/(prog|setup|version)"
 )
-
-_HEATER_NODE_TYPES = ["htr", "htr_mod", "acm"]
 
 
 class SmartboxDevice(object):
@@ -181,7 +183,7 @@ class SmartboxNode(object):
 
 
 def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
-    return node.node_type in _HEATER_NODE_TYPES
+    return node.node_type in HEATER_NODE_TYPES
 
 
 def is_supported_node(node: Union[SmartboxNode, MagicMock]) -> bool:
@@ -267,7 +269,7 @@ def _check_status_key(key: str, node_type: str, status: Dict[str, Any]):
 
 
 def get_target_temperature(node_type: str, status: Dict[str, Any]) -> float:
-    if node_type == "htr_mod":
+    if node_type == HEATER_NODE_TYPE_HTR_MOD:
         _check_status_key("selected_temp", node_type, status)
         if status["selected_temp"] == "comfort":
             _check_status_key("comfort_temp", node_type, status)
@@ -293,7 +295,7 @@ def set_temperature_args(
     node_type: str, status: Dict[str, Any], temp: float
 ) -> Dict[str, Any]:
     _check_status_key("units", node_type, status)
-    if node_type == "htr_mod":
+    if node_type == HEATER_NODE_TYPE_HTR_MOD:
         if status["selected_temp"] == "comfort":
             target_temp = temp
         elif status["selected_temp"] == "eco":
@@ -327,7 +329,7 @@ def get_hvac_mode(node_type: str, status: Dict[str, Any]) -> str:
     _check_status_key("mode", node_type, status)
     if status["mode"] == "off":
         return HVAC_MODE_OFF
-    elif node_type == "htr_mod" and not status["on"]:
+    elif node_type == HEATER_NODE_TYPE_HTR_MOD and not status["on"]:
         return HVAC_MODE_OFF
     elif status["mode"] == "manual":
         return HVAC_MODE_HEAT
@@ -349,7 +351,7 @@ def get_hvac_mode(node_type: str, status: Dict[str, Any]) -> str:
 def set_hvac_mode_args(
     node_type: str, status: Dict[str, Any], hvac_mode: str
 ) -> Dict[str, Any]:
-    if node_type == "htr_mod":
+    if node_type == HEATER_NODE_TYPE_HTR_MOD:
         if hvac_mode == HVAC_MODE_OFF:
             return {"on": False}
         elif hvac_mode == HVAC_MODE_HEAT:

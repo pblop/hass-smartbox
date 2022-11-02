@@ -18,6 +18,8 @@ from mocks import (
     round_temp,
 )
 
+from custom_components.smartbox.const import HEATER_NODE_TYPE_HTR_MOD
+
 _LOGGER = logging.getLogger(__name__)
 
 
@@ -87,7 +89,7 @@ async def test_basic_power(hass, mock_smartbox):
 
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
-            if mock_node["type"] == "htr_mod":
+            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
                 continue
             unique_id = get_unique_id(mock_device, mock_node, "power")
             entity_id = get_entity(hass, SENSOR_DOMAIN, unique_id)
@@ -156,7 +158,7 @@ async def test_unavailable(hass, mock_smartbox_unavailable):
         ):
             sensor_types = (
                 ["temperature"]
-                if mock_node["type"] == "htr_mod"
+                if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD
                 else ["temperature", "power"]
             )
             for sensor_type in sensor_types:

@@ -31,6 +31,7 @@ from custom_components.smartbox.climate import (
     get_hvac_mode,
     status_to_hvac_action,
 )
+from custom_components.smartbox.const import HEATER_NODE_TYPE_HTR_MOD
 
 from mocks import (
     convert_temp,
@@ -60,7 +61,7 @@ def _check_state(hass, mock_node, mock_node_status, state):
         convert_temp(hass, mock_node_status["units"], float(mock_node_status["mtemp"])),
     )
     # ATTR_TEMPERATURE actually stores the target temperature
-    if mock_node["type"] == "htr_mod":
+    if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
         if mock_node_status["selected_temp"] == "comfort":
             target_temp = float(mock_node_status["comfort_temp"])
         elif mock_node_status["selected_temp"] == "eco":
@@ -208,7 +209,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            if mock_node["type"] == "htr_mod":
+            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
                 assert mock_node_status["on"]
             assert mock_node_status["mode"] == "auto"
 
@@ -229,7 +230,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            if mock_node["type"] == "htr_mod":
+            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
                 assert mock_node_status["on"]
             assert mock_node_status["mode"] == "manual"
 
@@ -250,7 +251,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
-            if mock_node["type"] == "htr_mod":
+            if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
                 assert not mock_node_status["on"]
             else:
                 assert mock_node_status["mode"] == "off"
@@ -272,7 +273,7 @@ async def test_set_target_temp(hass, mock_smartbox):
                 mock_device["dev_id"], mock_node
             )
             if (
-                mock_node["type"] == "htr_mod"
+                mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD
                 and mock_node_status["selected_temp"] == "ice"
             ):
                 # We can't set temperatures in ice mode

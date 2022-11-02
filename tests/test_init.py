@@ -17,6 +17,9 @@ from custom_components.smartbox.const import (
     CONF_SESSION_BACKOFF_FACTOR,
     CONF_SOCKET_RECONNECT_ATTEMPTS,
     CONF_SOCKET_BACKOFF_FACTOR,
+    HEATER_NODE_TYPE_ACM,
+    HEATER_NODE_TYPE_HTR,
+    HEATER_NODE_TYPE_HTR_MOD,
     SMARTBOX_DEVICES,
 )
 from const import TEST_CONFIG_1, TEST_CONFIG_2, TEST_CONFIG_3
@@ -27,8 +30,8 @@ _LOGGER = logging.getLogger(__name__)
 
 async def test_setup_basic(hass, caplog):
     dev_1_id = "test_device_id_1"
-    mock_node_1 = mock_node(dev_1_id, 1, "htr")
-    mock_node_2 = mock_node(dev_1_id, 2, "htr_mod")
+    mock_node_1 = mock_node(dev_1_id, 1, HEATER_NODE_TYPE_HTR)
+    mock_node_2 = mock_node(dev_1_id, 2, HEATER_NODE_TYPE_HTR_MOD)
     mock_dev_1 = mock_device(dev_1_id, [mock_node_1, mock_node_2])
 
     with patch(
@@ -61,15 +64,15 @@ async def test_setup_basic(hass, caplog):
 
 async def test_setup_multiple_accounts_and_devices(hass):
     dev_1_id = "test_device_id_1"
-    mock_dev_1_node_1 = mock_node(dev_1_id, 1, "htr_mod")
+    mock_dev_1_node_1 = mock_node(dev_1_id, 1, HEATER_NODE_TYPE_HTR_MOD)
     mock_dev_1 = mock_device(dev_1_id, [mock_dev_1_node_1])
 
     dev_2_1_id = "test_device_id_2_1"
-    mock_dev_2_1_node_1 = mock_node(dev_2_1_id, 1, "htr")
+    mock_dev_2_1_node_1 = mock_node(dev_2_1_id, 1, HEATER_NODE_TYPE_HTR)
     mock_dev_2_1 = mock_device(dev_2_1_id, [mock_dev_2_1_node_1])
 
     dev_2_2_id = "test_device_id_2_2"
-    mock_dev_2_2_node_1 = mock_node(dev_2_2_id, 1, "acm")
+    mock_dev_2_2_node_1 = mock_node(dev_2_2_id, 1, HEATER_NODE_TYPE_ACM)
     mock_dev_2_2 = mock_device(dev_2_2_id, [mock_dev_2_2_node_1])
 
     devs = [[mock_dev_1], [mock_dev_2_1, mock_dev_2_2]]
@@ -112,14 +115,14 @@ async def test_setup_multiple_accounts_and_devices(hass):
 async def test_setup_missing_and_extra_devices(hass, caplog):
     # config specifies devices 1 and 2, but 2 is missing and 3 exists
     dev_1_id = "test_device_id_1"
-    mock_node_1 = mock_node(dev_1_id, 1, "acm")
-    mock_node_2 = mock_node(dev_1_id, 2, "htr_mod")
+    mock_node_1 = mock_node(dev_1_id, 1, HEATER_NODE_TYPE_ACM)
+    mock_node_2 = mock_node(dev_1_id, 2, HEATER_NODE_TYPE_HTR_MOD)
     mock_dev_1 = mock_device(dev_1_id, [mock_node_1, mock_node_2])
 
     dev_2_id = "test_device_id_2"  # missing
 
     dev_3_id = "test_device_id_3"
-    mock_node_1 = mock_node(dev_3_id, 1, "htr")
+    mock_node_1 = mock_node(dev_3_id, 1, HEATER_NODE_TYPE_HTR)
     mock_dev_3 = mock_device(dev_3_id, [mock_node_1])
 
     with patch(
@@ -156,7 +159,7 @@ async def test_setup_missing_and_extra_devices(hass, caplog):
 
 async def test_setup_unsupported_nodes(hass, caplog):
     dev_1_id = "test_device_id_1"
-    mock_node_1 = mock_node(dev_1_id, 1, "htr_mod")
+    mock_node_1 = mock_node(dev_1_id, 1, HEATER_NODE_TYPE_HTR_MOD)
     mock_node_2 = mock_node(dev_1_id, 2, "test_unsupported_node")
     mock_dev_1 = mock_device(dev_1_id, [mock_node_1, mock_node_2])
 

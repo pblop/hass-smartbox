@@ -10,6 +10,9 @@ from custom_components.smartbox.const import (
     CONF_SESSION_BACKOFF_FACTOR,
     CONF_SOCKET_RECONNECT_ATTEMPTS,
     CONF_SOCKET_BACKOFF_FACTOR,
+    HEATER_NODE_TYPE_ACM,
+    HEATER_NODE_TYPE_HTR,
+    HEATER_NODE_TYPE_HTR_MOD,
 )
 
 TEST_CONFIG_1 = {
@@ -100,29 +103,29 @@ MOCK_SMARTBOX_NODE_INFO = {
         {
             "addr": 0,
             "name": "Test device 1 node 0",
-            "type": "htr",
+            "type": HEATER_NODE_TYPE_HTR,
         },
         {
             "addr": 1,
             "name": "Test device 1 node 1",
-            "type": "acm",
+            "type": HEATER_NODE_TYPE_ACM,
         },
     ],
     "test_device_id_2": [
         {
             "addr": 0,
             "name": "Test device 2 node 0",
-            "type": "htr_mod",
+            "type": HEATER_NODE_TYPE_HTR_MOD,
         },
         {
             "addr": 1,
             "name": "Test device 2 node 1",
-            "type": "htr_mod",
+            "type": HEATER_NODE_TYPE_HTR_MOD,
         },
         {
             "addr": 2,
             "name": "Test device 2 node 2",
-            "type": "htr_mod",
+            "type": HEATER_NODE_TYPE_HTR_MOD,
         },
     ],
 }

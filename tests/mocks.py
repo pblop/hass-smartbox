@@ -9,6 +9,7 @@ from custom_components.smartbox.const import (
     DOMAIN,
     CONF_ACCOUNTS,
     CONF_DEVICE_IDS,
+    HEATER_NODE_TYPE_HTR_MOD,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -36,7 +37,7 @@ def mock_node(dev_id, addr, node_type, mode="auto"):
         "power": "854",
         "mode": mode,
     }
-    if node_type == "htr_mod":
+    if node_type == HEATER_NODE_TYPE_HTR_MOD:
         node.status["on"] = True
         node.status["selected_temp"] = "comfort"
         node.status["comfort_temp"] = "22"
@@ -168,13 +169,13 @@ class MockSmartbox(object):
         status = self._socket_node_status[dev_id][addr]
         temp_increment = 0.1 if status["units"] == "C" else 1
         status["mtemp"] = str(float(status["mtemp"]) + temp_increment)
-        if mock_node["type"] == "htr_mod":
+        if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
             status["comfort_temp"] = str(float(status["comfort_temp"]) + temp_increment)
         else:
             status["stemp"] = str(float(status["stemp"]) + temp_increment)
         # always set back to in-sync status
         status["sync_status"] = "ok"
-        if mock_node["type"] != "htr_mod":
+        if mock_node["type"] != HEATER_NODE_TYPE_HTR_MOD:
             status["power"] = str(float(status["power"]) + 1)
         self._socket_node_status[dev_id][addr] = status
 
