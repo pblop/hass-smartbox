@@ -10,6 +10,8 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
+    PRESET_AWAY,
+    PRESET_HOME,
 )
 from homeassistant.core import HomeAssistant
 from smartbox import Session, SocketSession
@@ -378,3 +380,13 @@ def set_hvac_mode_args(
             return {"mode": "auto"}
         else:
             raise ValueError(f"Unsupported hvac mode {hvac_mode}")
+
+
+def get_preset_mode(node_type: str, away: bool) -> str:
+    if away:
+        return PRESET_AWAY
+    return PRESET_HOME
+
+
+def get_preset_modes(node_type: str) -> List[str]:
+    return [PRESET_AWAY, PRESET_HOME]

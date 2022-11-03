@@ -5,8 +5,6 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
-    PRESET_AWAY,
-    PRESET_HOME,
     SUPPORT_PRESET_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
@@ -23,6 +21,8 @@ from unittest.mock import MagicMock
 from .const import DOMAIN, SMARTBOX_NODES
 from .model import (
     get_hvac_mode,
+    get_preset_mode,
+    get_preset_modes,
     get_target_temperature,
     get_temperature_unit,
     is_heater_node,
@@ -145,13 +145,11 @@ class SmartboxHeater(ClimateEntity):
 
     @property
     def preset_mode(self) -> str:
-        preset_mode = PRESET_AWAY if self._node.away else PRESET_HOME
-        return preset_mode
+        return get_preset_mode(self._node.node_type, self._node.away)
 
     @property
     def preset_modes(self) -> List[str]:
-        preset_modes = [PRESET_AWAY, PRESET_HOME]
-        return preset_modes
+        return get_preset_modes(self._node.node_type)
 
     @property
     def extra_state_attributes(self) -> Dict[str, bool]:

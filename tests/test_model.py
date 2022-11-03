@@ -10,6 +10,8 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
+    PRESET_AWAY,
+    PRESET_HOME,
 )
 from custom_components.smartbox.const import (
     DOMAIN,
@@ -30,6 +32,8 @@ from custom_components.smartbox.model import (
     create_smartbox_device,
     get_devices,
     get_hvac_mode,
+    get_preset_mode,
+    get_preset_modes,
     get_target_temperature,
     is_heater_node,
     is_supported_node,
@@ -562,3 +566,18 @@ def test_set_hvac_mode_args():
             HVAC_MODE_HEAT,
         )
     assert "selected_temp" in exc_info.exconly()
+
+
+def test_get_preset_mode():
+    assert get_preset_mode(HEATER_NODE_TYPE_HTR, away=True) == PRESET_AWAY
+    assert get_preset_mode(HEATER_NODE_TYPE_ACM, away=True) == PRESET_AWAY
+    assert get_preset_mode(HEATER_NODE_TYPE_HTR_MOD, away=True) == PRESET_AWAY
+    assert get_preset_mode(HEATER_NODE_TYPE_HTR, away=False) == PRESET_HOME
+    assert get_preset_mode(HEATER_NODE_TYPE_ACM, away=False) == PRESET_HOME
+    assert get_preset_mode(HEATER_NODE_TYPE_HTR_MOD, away=False) == PRESET_HOME
+
+
+def test_get_preset_modes():
+    assert get_preset_modes(HEATER_NODE_TYPE_HTR) == [PRESET_AWAY, PRESET_HOME]
+    assert get_preset_modes(HEATER_NODE_TYPE_ACM) == [PRESET_AWAY, PRESET_HOME]
+    assert get_preset_modes(HEATER_NODE_TYPE_HTR_MOD) == [PRESET_AWAY, PRESET_HOME]
