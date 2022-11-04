@@ -21,7 +21,10 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
+    PRESET_ACTIVITY,
     PRESET_AWAY,
+    PRESET_COMFORT,
+    PRESET_ECO,
     PRESET_HOME,
     SERVICE_SET_HVAC_MODE,
     SERVICE_SET_TEMPERATURE,
@@ -31,7 +34,12 @@ from custom_components.smartbox.climate import (
     get_hvac_mode,
     status_to_hvac_action,
 )
-from custom_components.smartbox.const import HEATER_NODE_TYPE_HTR_MOD
+from custom_components.smartbox.const import (
+    HEATER_NODE_TYPE_HTR_MOD,
+    PRESET_FROST,
+    PRESET_SCHEDULE,
+    PRESET_SELF_LEARN,
+)
 
 from mocks import (
     convert_temp,
@@ -162,13 +170,40 @@ async def test_away(hass, mock_smartbox):
     assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
     await hass.async_block_till_done()
 
-    # test everything is 'home'
+    def check_preset(node_type, status, preset_mode):
+        if node_type == HEATER_NODE_TYPE_HTR_MOD:
+            if status["mode"] == "auto":
+                assert preset_mode == PRESET_SCHEDULE
+            elif status["mode"] == "manual":
+                if status["selected_temp"] == "comfort":
+                    assert preset_mode == PRESET_COMFORT
+                elif status["selected_temp"] == "eco":
+                    assert preset_mode == PRESET_ECO
+                elif status["selected_temp"] == "ice":
+                    assert preset_mode == PRESET_FROST
+                else:
+                    pytest.fail(f"Unknown selected_temp {status['selected_temp']}")
+            elif status["mode"] == "self_learn":
+                assert preset_mode == PRESET_SELF_LEARN
+            elif status["mode"] == "presence":
+                assert preset_mode == PRESET_ACTIVITY
+            else:
+                pytest.fail(f"Unknown mode {status['mode']}")
+        else:
+            assert preset_mode == PRESET_HOME
+
+    # test everything is not away
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             unique_id = get_unique_id(mock_device, mock_node, "climate")
             entity_id = get_entity(hass, CLIMATE_DOMAIN, unique_id)
             state = hass.states.get(entity_id)
-            assert state.attributes[ATTR_PRESET_MODE] == PRESET_HOME
+            mock_node_status = mock_smartbox.session.get_status(
+                mock_device["dev_id"], mock_node
+            )
+            check_preset(
+                mock_node["type"], mock_node_status, state.attributes[ATTR_PRESET_MODE]
+            )
 
     mock_device_1 = mock_smartbox.session.get_devices()[0]
     mock_smartbox.dev_data_update(mock_device_1, {"away_status": {"away": True}})
@@ -186,7 +221,12 @@ async def test_away(hass, mock_smartbox):
         entity_id = get_entity(hass, CLIMATE_DOMAIN, unique_id)
         await hass.helpers.entity_component.async_update_entity(entity_id)
         state = hass.states.get(entity_id)
-        assert state.attributes[ATTR_PRESET_MODE] == PRESET_HOME
+        mock_node_status = mock_smartbox.session.get_status(
+            mock_device["dev_id"], mock_node
+        )
+        check_preset(
+            mock_node["type"], mock_node_status, state.attributes[ATTR_PRESET_MODE]
+        )
 
 
 async def test_set_hvac_mode(hass, mock_smartbox):

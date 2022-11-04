@@ -10,7 +10,10 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
+    PRESET_ACTIVITY,
     PRESET_AWAY,
+    PRESET_COMFORT,
+    PRESET_ECO,
     PRESET_HOME,
 )
 from custom_components.smartbox.const import (
@@ -27,6 +30,9 @@ from custom_components.smartbox.const import (
     HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
+    PRESET_FROST,
+    PRESET_SCHEDULE,
+    PRESET_SELF_LEARN,
 )
 from custom_components.smartbox.model import (
     create_smartbox_device,
@@ -569,15 +575,85 @@ def test_set_hvac_mode_args():
 
 
 def test_get_preset_mode():
-    assert get_preset_mode(HEATER_NODE_TYPE_HTR, away=True) == PRESET_AWAY
-    assert get_preset_mode(HEATER_NODE_TYPE_ACM, away=True) == PRESET_AWAY
-    assert get_preset_mode(HEATER_NODE_TYPE_HTR_MOD, away=True) == PRESET_AWAY
-    assert get_preset_mode(HEATER_NODE_TYPE_HTR, away=False) == PRESET_HOME
-    assert get_preset_mode(HEATER_NODE_TYPE_ACM, away=False) == PRESET_HOME
-    assert get_preset_mode(HEATER_NODE_TYPE_HTR_MOD, away=False) == PRESET_HOME
+    assert get_preset_mode(HEATER_NODE_TYPE_HTR, {}, away=True) == PRESET_AWAY
+    assert get_preset_mode(HEATER_NODE_TYPE_ACM, {}, away=True) == PRESET_AWAY
+    assert get_preset_mode(HEATER_NODE_TYPE_HTR_MOD, {}, away=True) == PRESET_AWAY
+    assert get_preset_mode(HEATER_NODE_TYPE_HTR, {}, away=False) == PRESET_HOME
+    assert get_preset_mode(HEATER_NODE_TYPE_ACM, {}, away=False) == PRESET_HOME
+
+    assert (
+        get_preset_mode(
+            HEATER_NODE_TYPE_HTR_MOD,
+            {"mode": "manual", "selected_temp": "comfort"},
+            away=False,
+        )
+        == PRESET_COMFORT
+    )
+    assert (
+        get_preset_mode(
+            HEATER_NODE_TYPE_HTR_MOD,
+            {"mode": "manual", "selected_temp": "eco"},
+            away=False,
+        )
+        == PRESET_ECO
+    )
+    assert (
+        get_preset_mode(
+            HEATER_NODE_TYPE_HTR_MOD,
+            {"mode": "manual", "selected_temp": "ice"},
+            away=False,
+        )
+        == PRESET_FROST
+    )
+    assert (
+        get_preset_mode(
+            HEATER_NODE_TYPE_HTR_MOD,
+            {"mode": "auto", "selected_temp": "comfort"},
+            away=False,
+        )
+        == PRESET_SCHEDULE
+    )
+    assert (
+        get_preset_mode(
+            HEATER_NODE_TYPE_HTR_MOD,
+            {"mode": "presence", "selected_temp": "comfort"},
+            away=False,
+        )
+        == PRESET_ACTIVITY
+    )
+    assert (
+        get_preset_mode(
+            HEATER_NODE_TYPE_HTR_MOD,
+            {"mode": "self_learn", "selected_temp": "comfort"},
+            away=False,
+        )
+        == PRESET_SELF_LEARN
+    )
+    with pytest.raises(ValueError) as exc_info:
+        get_preset_mode(
+            HEATER_NODE_TYPE_HTR_MOD,
+            {"mode": "blah", "selected_temp": "comfort"},
+            away=False,
+        )
+    assert "Unknown smartbox node mode" in exc_info.exconly()
+    with pytest.raises(ValueError) as exc_info:
+        get_preset_mode(
+            HEATER_NODE_TYPE_HTR_MOD,
+            {"mode": "manual", "selected_temp": "blah"},
+            away=False,
+        )
+    assert "Unexpected 'selected_temp' value" in exc_info.exconly()
 
 
 def test_get_preset_modes():
     assert get_preset_modes(HEATER_NODE_TYPE_HTR) == [PRESET_AWAY, PRESET_HOME]
     assert get_preset_modes(HEATER_NODE_TYPE_ACM) == [PRESET_AWAY, PRESET_HOME]
-    assert get_preset_modes(HEATER_NODE_TYPE_HTR_MOD) == [PRESET_AWAY, PRESET_HOME]
+    assert get_preset_modes(HEATER_NODE_TYPE_HTR_MOD) == [
+        PRESET_ACTIVITY,
+        PRESET_AWAY,
+        PRESET_COMFORT,
+        PRESET_ECO,
+        PRESET_FROST,
+        PRESET_SCHEDULE,
+        PRESET_SELF_LEARN,
+    ]

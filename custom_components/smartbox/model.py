@@ -10,7 +10,10 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
+    PRESET_ACTIVITY,
     PRESET_AWAY,
+    PRESET_COMFORT,
+    PRESET_ECO,
     PRESET_HOME,
 )
 from homeassistant.core import HomeAssistant
@@ -22,6 +25,9 @@ from .const import (
     GITHUB_ISSUES_URL,
     HEATER_NODE_TYPE_HTR_MOD,
     HEATER_NODE_TYPES,
+    PRESET_FROST,
+    PRESET_SCHEDULE,
+    PRESET_SELF_LEARN,
 )
 
 _LOGGER = logging.getLogger(__name__)
@@ -382,11 +388,52 @@ def set_hvac_mode_args(
             raise ValueError(f"Unsupported hvac mode {hvac_mode}")
 
 
-def get_preset_mode(node_type: str, away: bool) -> str:
+def _get_htr_mod_preset_mode(node_type: str, mode: str, selected_temp: str) -> str:
+    if mode == "manual":
+        if selected_temp == "comfort":
+            return PRESET_COMFORT
+        elif selected_temp == "eco":
+            return PRESET_ECO
+        elif selected_temp == "ice":
+            return PRESET_FROST
+        else:
+            raise ValueError(
+                f"'Unexpected 'selected_temp' value {'selected_temp'} found for "
+                f"{node_type} - please report to {GITHUB_ISSUES_URL}."
+            )
+    elif mode == "auto":
+        return PRESET_SCHEDULE
+    elif mode == "presence":
+        return PRESET_ACTIVITY
+    elif mode == "self_learn":
+        return PRESET_SELF_LEARN
+    else:
+        raise ValueError(f"Unknown smartbox node mode {mode}")
+
+
+def get_preset_mode(node_type: str, status: Dict[str, Any], away: bool) -> str:
     if away:
         return PRESET_AWAY
-    return PRESET_HOME
+    if node_type == HEATER_NODE_TYPE_HTR_MOD:
+        _check_status_key("mode", node_type, status)
+        _check_status_key("selected_temp", node_type, status)
+        return _get_htr_mod_preset_mode(
+            node_type, status["mode"], status["selected_temp"]
+        )
+    else:
+        return PRESET_HOME
 
 
 def get_preset_modes(node_type: str) -> List[str]:
-    return [PRESET_AWAY, PRESET_HOME]
+    if node_type == HEATER_NODE_TYPE_HTR_MOD:
+        return [
+            PRESET_ACTIVITY,
+            PRESET_AWAY,
+            PRESET_COMFORT,
+            PRESET_ECO,
+            PRESET_FROST,
+            PRESET_SCHEDULE,
+            PRESET_SELF_LEARN,
+        ]
+    else:
+        return [PRESET_AWAY, PRESET_HOME]

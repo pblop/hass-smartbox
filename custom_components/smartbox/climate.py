@@ -145,7 +145,7 @@ class SmartboxHeater(ClimateEntity):
 
     @property
     def preset_mode(self) -> str:
-        return get_preset_mode(self._node.node_type, self._node.away)
+        return get_preset_mode(self._node.node_type, self._status, self._node.away)
 
     @property
     def preset_modes(self) -> List[str]:

@@ -33,6 +33,10 @@ HEATER_NODE_TYPES = [
 
 MIN_TIME_BETWEEN_UPDATES = timedelta(minutes=1)
 
+PRESET_FROST = "frost"
+PRESET_SCHEDULE = "schedule"
+PRESET_SELF_LEARN = "self_learn"
+
 SMARTBOX_DEVICES = "smartbox_devices"
 SMARTBOX_NODES = "smartbox_nodes"
 SMARTBOX_SESSIONS = "smartbox_sessions"

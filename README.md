@@ -92,11 +92,19 @@ These are modelled as Home Assistant Climate entities.
   * Supported modes: 'manual' and 'auto'
   * Supported presets: 'home and 'away'
 * `htr_mod`
-  * Supported modes: 'manual' and 'auto'
-  * Semi-supported modes: 'self_learn' and 'presence' (mapped to 'auto', can't
-    be selected via HA at the moment)
-  * Supported presets: 'home and 'away'
-  * Unsupported presets: 'comfort', 'eco' and 'ice'
+  * Supported modes: 'manual', 'auto', 'self_learn' and 'presence'
+  * Supported presets: 'away', 'comfort', 'eco', 'ice' and 'away'
+
+The modes and presets for htr_mod heaters are mapped as follows:
+
+| htr\_mod mode | htr\_mod selected_temp | HA HVAC mode | HA preset   |
+|---------------|------------------------|--------------|-------------|
+| manual        | comfort                | HEAT         | COMFORT     |
+|               | eco                    | HEAT         | ECO         |
+|               | ice                    | HEAT         | ICE         |
+| auto          | *                      | AUTO         | SCHEDULE    |
+| self\_learn   | *                      | AUTO         | SELF\_LEARN |
+| presence      | *                      | AUTO         | ACTIVITY    |
 
 ## Debugging
 
@@ -124,7 +132,7 @@ file a [Github issue] with any problems.
 * Support device grouping
 * Handle adding and removing entities properly
 * Graceful cleanup/shutdown of update task
-* Handle other presets/modes (e.g. boost, eco, window)
+* Setting presets via HA
 
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
 [Github issue]: https://github.com/graham33/hass-smartbox/issues
