@@ -184,6 +184,12 @@ class SmartboxNode(object):
         _LOGGER.debug(f"Updating node {self.name} away status: {away}")
         self._away = away
 
+    def update_device_away_status(self, away: bool):
+        self._session.set_device_away_status(self._device.dev_id, {"away": away})
+        # Update current state for all nodes on the device
+        for node in self._device.get_nodes():
+            node.away = away
+
     async def async_update(
         self, hass: HomeAssistant
     ) -> Dict[str, Union[float, str, bool]]:
@@ -372,8 +378,6 @@ def set_hvac_mode_args(
             hvac_mode_args["mode"] = "manual"
             return hvac_mode_args
         elif hvac_mode == HVAC_MODE_AUTO:
-            # TODO: differentiate other modes we consider 'auto' (self_learn
-            # and presence)
             return {"on": True, "mode": "auto"}
         else:
             raise ValueError(f"Unsupported hvac mode {hvac_mode}")
@@ -437,3 +441,27 @@ def get_preset_modes(node_type: str) -> List[str]:
         ]
     else:
         return [PRESET_AWAY, PRESET_HOME]
+
+
+def set_preset_mode_status_update(
+    node_type: str, status: Dict[str, Any], preset_mode: str
+) -> Dict[str, Any]:
+    if node_type != HEATER_NODE_TYPE_HTR_MOD:
+        raise ValueError(f"{node_type} nodes do not support preset {preset_mode}")
+    # PRESET_HOME and PRESET_AWAY are not handled via status updates
+    assert preset_mode != PRESET_HOME and preset_mode != PRESET_AWAY
+
+    if preset_mode == PRESET_SCHEDULE:
+        return set_hvac_mode_args(node_type, status, HVAC_MODE_AUTO)
+    elif preset_mode == PRESET_SELF_LEARN:
+        return {"on": True, "mode": "self_learn"}
+    elif preset_mode == PRESET_ACTIVITY:
+        return {"on": True, "mode": "presence"}
+    elif preset_mode == PRESET_COMFORT:
+        return {"on": True, "mode": "manual", "selected_temp": "comfort"}
+    elif preset_mode == PRESET_ECO:
+        return {"on": True, "mode": "manual", "selected_temp": "eco"}
+    elif preset_mode == PRESET_FROST:
+        return {"on": True, "mode": "manual", "selected_temp": "ice"}
+    else:
+        raise ValueError(f"Unsupported preset {preset_mode} for node type {node_type}")

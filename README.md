@@ -132,7 +132,6 @@ file a [Github issue] with any problems.
 * Support device grouping
 * Handle adding and removing entities properly
 * Graceful cleanup/shutdown of update task
-* Setting presets via HA
 
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
 [Github issue]: https://github.com/graham33/hass-smartbox/issues

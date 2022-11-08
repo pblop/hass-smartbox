@@ -5,6 +5,8 @@ from homeassistant.components.climate.const import (
     HVAC_MODE_AUTO,
     HVAC_MODE_HEAT,
     HVAC_MODE_OFF,
+    PRESET_AWAY,
+    PRESET_HOME,
     SUPPORT_PRESET_MODE,
     SUPPORT_TARGET_TEMPERATURE,
 )
@@ -18,7 +20,7 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import MagicMock
 
-from .const import DOMAIN, SMARTBOX_NODES
+from .const import DOMAIN, HEATER_NODE_TYPE_HTR_MOD, SMARTBOX_NODES
 from .model import (
     get_hvac_mode,
     get_preset_mode,
@@ -27,6 +29,7 @@ from .model import (
     get_temperature_unit,
     is_heater_node,
     set_hvac_mode_args,
+    set_preset_mode_status_update,
     set_temperature_args,
     SmartboxNode,
 )
@@ -150,6 +153,22 @@ class SmartboxHeater(ClimateEntity):
     @property
     def preset_modes(self) -> List[str]:
         return get_preset_modes(self._node.node_type)
+
+    def set_preset_mode(self, preset_mode: str) -> None:
+        if preset_mode == PRESET_AWAY:
+            self._node.update_device_away_status(True)
+            return
+        if self._node.away:
+            self._node.update_device_away_status(False)
+        if self._node.node_type == HEATER_NODE_TYPE_HTR_MOD:
+            status_update = set_preset_mode_status_update(
+                self._node.node_type, self._status, preset_mode
+            )
+            self._node.set_status(**status_update)
+        elif preset_mode != PRESET_HOME:
+            raise ValueError(
+                f"Unsupported preset_mode {preset_mode} for {self._node.node_type} node"
+            )
 
     @property
     def extra_state_attributes(self) -> Dict[str, bool]:

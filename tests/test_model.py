@@ -44,6 +44,7 @@ from custom_components.smartbox.model import (
     is_heater_node,
     is_supported_node,
     set_hvac_mode_args,
+    set_preset_mode_status_update,
     set_temperature_args,
     SmartboxDevice,
     SmartboxNode,
@@ -657,3 +658,38 @@ def test_get_preset_modes():
         PRESET_SCHEDULE,
         PRESET_SELF_LEARN,
     ]
+
+
+def test_set_preset_mode_status_update():
+    assert set_preset_mode_status_update(
+        HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_SCHEDULE
+    ) == {"on": True, "mode": "auto"}
+    assert set_preset_mode_status_update(
+        HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_SELF_LEARN
+    ) == {"on": True, "mode": "self_learn"}
+    assert set_preset_mode_status_update(
+        HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_ACTIVITY
+    ) == {"on": True, "mode": "presence"}
+    assert set_preset_mode_status_update(
+        HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_COMFORT
+    ) == {"on": True, "mode": "manual", "selected_temp": "comfort"}
+    assert set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_ECO) == {
+        "on": True,
+        "mode": "manual",
+        "selected_temp": "eco",
+    }
+    assert set_preset_mode_status_update(
+        HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_FROST
+    ) == {"on": True, "mode": "manual", "selected_temp": "ice"}
+
+    with pytest.raises(ValueError):
+        set_preset_mode_status_update(HEATER_NODE_TYPE_HTR, {}, PRESET_SCHEDULE)
+    with pytest.raises(ValueError):
+        set_preset_mode_status_update(HEATER_NODE_TYPE_ACM, {}, PRESET_ACTIVITY)
+
+    with pytest.raises(ValueError):
+        set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, "fake_preset")
+    with pytest.raises(AssertionError):
+        set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_HOME)
+    with pytest.raises(AssertionError):
+        set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_AWAY)
