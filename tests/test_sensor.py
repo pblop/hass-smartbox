@@ -11,9 +11,9 @@ from homeassistant.setup import async_setup_component
 
 from mocks import (
     convert_temp,
-    get_entity,
-    get_entity_id,
-    get_object_id,
+    get_entity_id_from_unique_id,
+    get_sensor_entity_id,
+    get_sensor_object_id,
     get_unique_id,
     round_temp,
 )
@@ -36,14 +36,17 @@ async def test_basic_temp(hass, mock_smartbox):
 
     for mock_device in mock_smartbox.session.get_devices():
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
-            unique_id = get_unique_id(mock_device, mock_node, "temperature")
-            entity_id = get_entity(hass, SENSOR_DOMAIN, unique_id)
-
+            entity_id = get_sensor_entity_id(mock_node, "temperature")
             state = hass.states.get(entity_id)
 
             # check basic properties
-            assert state.object_id.startswith(get_object_id(mock_node))
-            assert state.entity_id.startswith(get_entity_id(mock_node, SENSOR_DOMAIN))
+            assert state.object_id.startswith(
+                get_sensor_object_id(mock_node, "temperature")
+            )
+            unique_id = get_unique_id(mock_device, mock_node, "temperature")
+            assert entity_id == get_entity_id_from_unique_id(
+                hass, SENSOR_DOMAIN, unique_id
+            )
             assert state.name == mock_node["name"]
             assert state.attributes[ATTR_FRIENDLY_NAME] == mock_node["name"]
 
@@ -92,14 +95,16 @@ async def test_basic_power(hass, mock_smartbox):
             if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
                 continue
             unique_id = get_unique_id(mock_device, mock_node, "power")
-            entity_id = get_entity(hass, SENSOR_DOMAIN, unique_id)
+            entity_id = get_entity_id_from_unique_id(hass, SENSOR_DOMAIN, unique_id)
 
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
 
             # check basic properties
-            assert state.object_id.startswith(get_object_id(mock_node))
-            assert state.entity_id.startswith(get_entity_id(mock_node, SENSOR_DOMAIN))
+            assert state.object_id.startswith(get_sensor_object_id(mock_node, "power"))
+            assert state.entity_id.startswith(
+                get_sensor_entity_id(mock_node, "temperature")
+            )
             assert state.name == mock_node["name"]
             assert state.attributes[ATTR_FRIENDLY_NAME] == mock_node["name"]
 
@@ -162,8 +167,7 @@ async def test_unavailable(hass, mock_smartbox_unavailable):
                 else ["temperature", "power"]
             )
             for sensor_type in sensor_types:
-                unique_id = get_unique_id(mock_device, mock_node, sensor_type)
-                entity_id = get_entity(hass, SENSOR_DOMAIN, unique_id)
+                entity_id = get_sensor_entity_id(mock_node, "temperature")
 
                 state = hass.states.get(entity_id)
                 assert state.state == STATE_UNAVAILABLE

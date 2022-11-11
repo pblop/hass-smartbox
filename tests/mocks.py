@@ -1,10 +1,12 @@
 import logging
+from typing import Any, Dict
 from unittest.mock import AsyncMock, MagicMock
 
+from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
+from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.const import TEMP_CELSIUS, TEMP_FAHRENHEIT
 from homeassistant.helpers import entity_registry
 from homeassistant.util.unit_conversion import TemperatureConverter
-
 from custom_components.smartbox.const import (
     DOMAIN,
     CONF_ACCOUNTS,
@@ -49,20 +51,37 @@ def mock_node(dev_id, addr, node_type, mode="auto"):
     return node
 
 
-def get_object_id(mock_node):
-    return mock_node["name"].lower().replace(" ", "_")
+def get_climate_entity_name(mock_node: Dict[str, Any]) -> str:
+    return mock_node["name"]
 
 
-def get_entity_id(mock_node, domain):
-    object_id = get_object_id(mock_node)
-    return f"{domain}.{object_id}"
+def get_sensor_entity_name(mock_node: Dict[str, Any], sensor_type: str) -> str:
+    return mock_node["name"]
+
+
+def get_climate_object_id(mock_node: Dict[str, Any]) -> str:
+    return get_climate_entity_name(mock_node).lower().replace(" ", "_")
+
+
+def get_sensor_object_id(mock_node: Dict[str, Any], sensor_type: str) -> str:
+    return get_sensor_entity_name(mock_node, sensor_type).lower().replace(" ", "_")
+
+
+def get_climate_entity_id(mock_node: Dict[str, Any]) -> str:
+    object_id = get_climate_object_id(mock_node)
+    return f"{CLIMATE_DOMAIN}.{object_id}"
+
+
+def get_sensor_entity_id(mock_node: Dict[str, Any], sensor_type: str) -> str:
+    object_id = get_sensor_object_id(mock_node, sensor_type)
+    return f"{SENSOR_DOMAIN}.{object_id}"
 
 
 def get_unique_id(mock_device, mock_node, device_type):
     return f"{mock_device['dev_id']}-{mock_node['addr']}_{device_type}"
 
 
-def get_entity(hass, platform, unique_id):
+def get_entity_id_from_unique_id(hass, platform, unique_id):
     er = entity_registry.async_get(hass)
     entity_id = er.async_get_entity_id(platform, DOMAIN, unique_id)
     assert entity_id is not None
