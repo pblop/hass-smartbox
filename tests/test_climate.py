@@ -10,17 +10,13 @@ from homeassistant.const import (
     ENTITY_MATCH_ALL,
     STATE_UNAVAILABLE,
 )
+from homeassistant.components.climate import HVACAction, HVACMode
 from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.climate.const import (
     ATTR_CURRENT_TEMPERATURE,
     ATTR_HVAC_ACTION,
     ATTR_HVAC_MODE,
     ATTR_PRESET_MODE,
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_IDLE,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
     PRESET_ACTIVITY,
     PRESET_AWAY,
     PRESET_COMFORT,
@@ -55,8 +51,8 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def test_status_to_hvac_action():
-    assert status_to_hvac_action({"active": True}) == CURRENT_HVAC_HEAT
-    assert status_to_hvac_action({"active": False}) == CURRENT_HVAC_IDLE
+    assert status_to_hvac_action({"active": True}) == HVACAction.HEATING
+    assert status_to_hvac_action({"active": False}) == HVACAction.IDLE
     with pytest.raises(KeyError):
         status_to_hvac_action({})
 
@@ -564,7 +560,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
     await hass.services.async_call(
         CLIMATE_DOMAIN,
         SERVICE_SET_HVAC_MODE,
-        {ATTR_HVAC_MODE: HVAC_MODE_AUTO, ATTR_ENTITY_ID: ENTITY_MATCH_ALL},
+        {ATTR_HVAC_MODE: HVACMode.AUTO, ATTR_ENTITY_ID: ENTITY_MATCH_ALL},
         blocking=True,
     )
 
@@ -573,7 +569,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             unique_id = get_unique_id(mock_device, mock_node, "climate")
             entity_id = get_entity(hass, CLIMATE_DOMAIN, unique_id)
             state = hass.states.get(entity_id)
-            assert state.state == HVAC_MODE_AUTO
+            assert state.state == HVACMode.AUTO
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
@@ -584,7 +580,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
     await hass.services.async_call(
         CLIMATE_DOMAIN,
         SERVICE_SET_HVAC_MODE,
-        {ATTR_HVAC_MODE: HVAC_MODE_HEAT, ATTR_ENTITY_ID: ENTITY_MATCH_ALL},
+        {ATTR_HVAC_MODE: HVACMode.HEAT, ATTR_ENTITY_ID: ENTITY_MATCH_ALL},
         blocking=True,
     )
 
@@ -594,7 +590,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             entity_id = get_entity(hass, CLIMATE_DOMAIN, unique_id)
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            assert state.state == HVAC_MODE_HEAT
+            assert state.state == HVACMode.HEAT
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
@@ -605,7 +601,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
     await hass.services.async_call(
         CLIMATE_DOMAIN,
         SERVICE_SET_HVAC_MODE,
-        {ATTR_HVAC_MODE: HVAC_MODE_OFF, ATTR_ENTITY_ID: ENTITY_MATCH_ALL},
+        {ATTR_HVAC_MODE: HVACMode.OFF, ATTR_ENTITY_ID: ENTITY_MATCH_ALL},
         blocking=True,
     )
 
@@ -615,7 +611,7 @@ async def test_set_hvac_mode(hass, mock_smartbox):
             entity_id = get_entity(hass, CLIMATE_DOMAIN, unique_id)
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            assert state.state == HVAC_MODE_OFF
+            assert state.state == HVACMode.OFF
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
             )
@@ -687,14 +683,14 @@ async def test_hvac_action(hass, mock_smartbox):
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            assert state.attributes[ATTR_HVAC_ACTION] == CURRENT_HVAC_IDLE
+            assert state.attributes[ATTR_HVAC_ACTION] == HVACAction.IDLE
 
             mock_smartbox.generate_socket_status_update(
                 mock_device, mock_node, {"active": True}
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
-            assert state.attributes[ATTR_HVAC_ACTION] == CURRENT_HVAC_HEAT
+            assert state.attributes[ATTR_HVAC_ACTION] == HVACAction.HEATING
 
 
 async def test_unavailable_at_startup(hass, mock_smartbox_unavailable):

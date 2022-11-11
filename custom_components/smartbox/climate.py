@@ -1,10 +1,5 @@
-from homeassistant.components.climate import ClimateEntity
+from homeassistant.components.climate import ClimateEntity, HVACAction, HVACMode
 from homeassistant.components.climate.const import (
-    CURRENT_HVAC_HEAT,
-    CURRENT_HVAC_IDLE,
-    HVAC_MODE_AUTO,
-    HVAC_MODE_HEAT,
-    HVAC_MODE_OFF,
     PRESET_AWAY,
     PRESET_HOME,
     SUPPORT_PRESET_MODE,
@@ -60,7 +55,7 @@ async def async_setup_platform(
 
 
 def status_to_hvac_action(status: Dict[str, Union[float, str, bool]]) -> str:
-    return CURRENT_HVAC_HEAT if status["active"] else CURRENT_HVAC_IDLE
+    return HVACAction.HEATING if status["active"] else HVACAction.IDLE
 
 
 class SmartboxHeater(ClimateEntity):
@@ -137,7 +132,7 @@ class SmartboxHeater(ClimateEntity):
     @property
     def hvac_modes(self) -> List[str]:
         """Return the list of available operation modes."""
-        hvac_modes = [HVAC_MODE_HEAT, HVAC_MODE_AUTO, HVAC_MODE_OFF]
+        hvac_modes = [HVACMode.HEAT, HVACMode.AUTO, HVACMode.OFF]
         return hvac_modes
 
     def set_hvac_mode(self, hvac_mode):
