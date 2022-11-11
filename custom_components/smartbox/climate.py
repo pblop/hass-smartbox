@@ -1,9 +1,12 @@
-from homeassistant.components.climate import ClimateEntity, HVACAction, HVACMode
+from homeassistant.components.climate import (
+    ClimateEntity,
+    ClimateEntityFeature,
+    HVACAction,
+    HVACMode,
+)
 from homeassistant.components.climate.const import (
     PRESET_AWAY,
     PRESET_HOME,
-    SUPPORT_PRESET_MODE,
-    SUPPORT_TARGET_TEMPERATURE,
 )
 from homeassistant.const import (
     ATTR_LOCKED,
@@ -66,7 +69,9 @@ class SmartboxHeater(ClimateEntity):
         self._node = node
         self._status: Dict[str, Any] = {}
         self._available = False  # unavailable until we get an update
-        self._supported_features = SUPPORT_TARGET_TEMPERATURE | SUPPORT_PRESET_MODE
+        self._supported_features = (
+            ClimateEntityFeature.TARGET_TEMPERATURE | ClimateEntityFeature.PRESET_MODE
+        )
         _LOGGER.debug(f"Created node {self.name} unique_id={self.unique_id}")
 
     @property
