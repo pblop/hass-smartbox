@@ -1,4 +1,5 @@
 import logging
+import pytest
 from typing import Any, Dict
 from unittest.mock import AsyncMock, MagicMock
 
@@ -56,7 +57,12 @@ def get_climate_entity_name(mock_node: Dict[str, Any]) -> str:
 
 
 def get_sensor_entity_name(mock_node: Dict[str, Any], sensor_type: str) -> str:
-    return mock_node["name"]
+    if sensor_type == "temperature":
+        return f"{mock_node['name']} Temperature"
+    elif sensor_type == "power":
+        return f"{mock_node['name']} Power"
+    else:
+        pytest.fail(f"Unhandled sensor type {sensor_type}")
 
 
 def get_climate_object_id(mock_node: Dict[str, Any]) -> str:

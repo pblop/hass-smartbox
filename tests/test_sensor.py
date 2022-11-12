@@ -43,12 +43,18 @@ async def test_basic_temp(hass, mock_smartbox):
             assert state.object_id.startswith(
                 get_sensor_object_id(mock_node, "temperature")
             )
+            assert state.entity_id.startswith(
+                get_sensor_entity_id(mock_node, "temperature")
+            )
+            assert state.name == f"{mock_node['name']} Temperature"
+            assert (
+                state.attributes[ATTR_FRIENDLY_NAME]
+                == f"{mock_node['name']} Temperature"
+            )
             unique_id = get_unique_id(mock_device, mock_node, "temperature")
             assert entity_id == get_entity_id_from_unique_id(
                 hass, SENSOR_DOMAIN, unique_id
             )
-            assert state.name == mock_node["name"]
-            assert state.attributes[ATTR_FRIENDLY_NAME] == mock_node["name"]
 
             mock_node_status = mock_smartbox.session.get_status(
                 mock_device["dev_id"], mock_node
@@ -94,19 +100,18 @@ async def test_basic_power(hass, mock_smartbox):
         for mock_node in mock_smartbox.session.get_nodes(mock_device["dev_id"]):
             if mock_node["type"] == HEATER_NODE_TYPE_HTR_MOD:
                 continue
-            unique_id = get_unique_id(mock_device, mock_node, "power")
-            entity_id = get_entity_id_from_unique_id(hass, SENSOR_DOMAIN, unique_id)
-
-            await hass.helpers.entity_component.async_update_entity(entity_id)
+            entity_id = get_sensor_entity_id(mock_node, "power")
             state = hass.states.get(entity_id)
 
             # check basic properties
             assert state.object_id.startswith(get_sensor_object_id(mock_node, "power"))
-            assert state.entity_id.startswith(
-                get_sensor_entity_id(mock_node, "temperature")
+            assert state.entity_id.startswith(get_sensor_entity_id(mock_node, "power"))
+            assert state.name == f"{mock_node['name']} Power"
+            assert state.attributes[ATTR_FRIENDLY_NAME] == f"{mock_node['name']} Power"
+            unique_id = get_unique_id(mock_device, mock_node, "power")
+            assert entity_id == get_entity_id_from_unique_id(
+                hass, SENSOR_DOMAIN, unique_id
             )
-            assert state.name == mock_node["name"]
-            assert state.attributes[ATTR_FRIENDLY_NAME] == mock_node["name"]
 
             # make sure it's active
             mock_smartbox.generate_socket_status_update(

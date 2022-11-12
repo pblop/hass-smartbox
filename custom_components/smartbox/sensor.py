@@ -58,10 +58,6 @@ class SmartboxSensorBase(SensorEntity):
         _LOGGER.debug(f"Created node {self.name} unique_id={self.unique_id}")
 
     @property
-    def name(self) -> str:
-        return self._node.name
-
-    @property
     def extra_state_attributes(self) -> Dict[str, bool]:
         return {
             ATTR_LOCKED: self._status["locked"],
@@ -91,6 +87,10 @@ class TemperatureSensor(SmartboxSensorBase):
         super().__init__(node)
 
     @property
+    def name(self) -> str:
+        return f"{self._node.name} Temperature"
+
+    @property
     def unique_id(self) -> str:
         return f"{self._node.node_id}_temperature"
 
@@ -112,6 +112,10 @@ class PowerSensor(SmartboxSensorBase):
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         super().__init__(node)
+
+    @property
+    def name(self) -> str:
+        return f"{self._node.name} Power"
 
     @property
     def unique_id(self) -> str:
