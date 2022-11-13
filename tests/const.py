@@ -145,7 +145,7 @@ MOCK_SMARTBOX_NODE_INFO = {
     ],
 }
 
-MOCK_SMARTBOX_NODE_STATUS_C = {
+MOCK_SMARTBOX_NODE_STATUS = {
     "test_device_id_1": [
         {
             "mtemp": "25.7",
@@ -246,65 +246,6 @@ MOCK_SMARTBOX_NODE_STATUS_C = {
             "locked": False,
             "active": True,
             "mode": "presence",
-        },
-    ],
-}
-
-MOCK_SMARTBOX_NODE_STATUS_F = {
-    "test_device_id_1": [
-        {
-            "mtemp": "80.7",
-            "stemp": "78.3",
-            "units": "F",
-        },
-        {
-            "mtemp": "81.2",
-            "stemp": "82",
-            "units": "F",
-        },
-    ],
-    "test_device_id_2": [
-        {
-            "mtemp": "80.7",
-            "comfort_temp": "78.3",
-            "eco_offset": "11",
-            "ice_temp": "45",
-            "units": "F",
-        },
-        {
-            "mtemp": "81.2",
-            "comfort_temp": "93",
-            "eco_offset": "11",
-            "ice_temp": "45",
-            "units": "F",
-        },
-        {
-            "mtemp": "50.7",
-            "comfort_temp": "93",
-            "eco_offset": "11",
-            "ice_temp": "45",
-            "units": "F",
-        },
-        {
-            "mtemp": "54.7",
-            "comfort_temp": "93",
-            "eco_offset": "11",
-            "ice_temp": "45",
-            "units": "F",
-        },
-        {
-            "mtemp": "55.7",
-            "comfort_temp": "93",
-            "eco_offset": "11",
-            "ice_temp": "45",
-            "units": "F",
-        },
-        {
-            "mtemp": "56.7",
-            "comfort_temp": "93",
-            "eco_offset": "11",
-            "ice_temp": "45",
-            "units": "F",
         },
     ],
 }

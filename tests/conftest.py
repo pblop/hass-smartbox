@@ -5,11 +5,11 @@ from unittest.mock import patch
 from const import (
     MOCK_SMARTBOX_CONFIG,
     MOCK_SMARTBOX_NODE_INFO,
-    MOCK_SMARTBOX_NODE_STATUS_F,
-    MOCK_SMARTBOX_NODE_STATUS_C,
+    MOCK_SMARTBOX_NODE_STATUS,
 )
 
 from mocks import MockSmartbox
+from test_utils import simple_celsius_to_fahrenheit
 
 pytest_plugins = "pytest_homeassistant_custom_component"
 
@@ -34,11 +34,16 @@ def skip_notifications_fixture():
 
 
 def _get_node_status(units):
-    data = deepcopy(MOCK_SMARTBOX_NODE_STATUS_C)
+    data = deepcopy(MOCK_SMARTBOX_NODE_STATUS)
     if units == "F":
         for dev_id in data:
             for i, _ in enumerate(data[dev_id]):
-                data[dev_id][i].update(MOCK_SMARTBOX_NODE_STATUS_F[dev_id][i])
+                for key in ["mtemp", "stemp", "comfort_temp", "eco_offset", "ice_temp"]:
+                    if key in data[dev_id][i]:
+                        temp_c = float(MOCK_SMARTBOX_NODE_STATUS[dev_id][i][key])
+                        temp_f: float = simple_celsius_to_fahrenheit(temp_c)
+                        data[dev_id][i][key] = str(round(temp_f, 1))
+                data[dev_id][i]["units"] = "F"
     return data
 
 

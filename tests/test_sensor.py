@@ -10,13 +10,13 @@ from homeassistant.const import (
 from homeassistant.setup import async_setup_component
 
 from mocks import (
-    convert_temp,
     get_entity_id_from_unique_id,
     get_sensor_entity_id,
     get_sensor_object_id,
     get_unique_id,
-    round_temp,
 )
+
+from test_utils import convert_temp, round_temp
 
 from custom_components.smartbox.const import HEATER_NODE_TYPE_HTR_MOD
 

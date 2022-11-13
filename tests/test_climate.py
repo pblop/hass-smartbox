@@ -39,13 +39,13 @@ from custom_components.smartbox.const import (
 )
 
 from mocks import (
-    convert_temp,
     get_climate_entity_id,
     get_entity_id_from_unique_id,
     get_climate_object_id,
     get_unique_id,
-    round_temp,
 )
+
+from test_utils import convert_temp, round_temp
 
 _LOGGER = logging.getLogger(__name__)
 
