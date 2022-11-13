@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
+from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.helpers import entity_registry
 from custom_components.smartbox.const import (
     DOMAIN,
@@ -57,26 +58,41 @@ def get_sensor_entity_name(mock_node: Dict[str, Any], sensor_type: str) -> str:
     return f"{mock_node['name']} {sensor_type.capitalize()}"
 
 
-def get_climate_object_id(mock_node: Dict[str, Any]) -> str:
-    return get_climate_entity_name(mock_node).lower().replace(" ", "_")
+def get_away_status_switch_entity_name(mock_device: Dict[str, Any]) -> str:
+    return f"{mock_device['name']} Away Status"
 
 
-def get_sensor_object_id(mock_node: Dict[str, Any], sensor_type: str) -> str:
-    return get_sensor_entity_name(mock_node, sensor_type).lower().replace(" ", "_")
+def get_object_id(entity_name: str) -> str:
+    return entity_name.lower().replace(" ", "_")
+
+
+def get_entity_id_from_object_id(object_id: str, domain: str) -> str:
+    return f"{domain}.{object_id}"
 
 
 def get_climate_entity_id(mock_node: Dict[str, Any]) -> str:
-    object_id = get_climate_object_id(mock_node)
-    return f"{CLIMATE_DOMAIN}.{object_id}"
+    object_id = get_object_id(get_climate_entity_name(mock_node))
+    return get_entity_id_from_object_id(object_id, CLIMATE_DOMAIN)
 
 
 def get_sensor_entity_id(mock_node: Dict[str, Any], sensor_type: str) -> str:
-    object_id = get_sensor_object_id(mock_node, sensor_type)
-    return f"{SENSOR_DOMAIN}.{object_id}"
+    object_id = get_object_id(get_sensor_entity_name(mock_node, sensor_type))
+    return get_entity_id_from_object_id(object_id, SENSOR_DOMAIN)
 
 
-def get_unique_id(mock_device, mock_node, device_type):
-    return f"{mock_device['dev_id']}-{mock_node['addr']}_{device_type}"
+def get_away_status_switch_entity_id(mock_device: Dict[str, Any]) -> str:
+    object_id = get_object_id(get_away_status_switch_entity_name(mock_device))
+    return get_entity_id_from_object_id(object_id, SWITCH_DOMAIN)
+
+
+def get_device_unique_id(mock_device: Dict[str, Any], entity_type: str) -> str:
+    return f"{mock_device['dev_id']}_{entity_type}"
+
+
+def get_node_unique_id(
+    mock_device: Dict[str, Any], mock_node: Dict[str, Any], entity_type: str
+) -> str:
+    return f"{mock_device['dev_id']}-{mock_node['addr']}_{entity_type}"
 
 
 def get_entity_id_from_unique_id(hass, platform, unique_id):
@@ -88,11 +104,17 @@ def get_entity_id_from_unique_id(hass, platform, unique_id):
 
 class MockSmartbox(object):
     def __init__(
-        self, mock_config, mock_node_info, mock_node_status, start_available=True
+        self,
+        mock_config,
+        mock_device_info,
+        mock_node_info,
+        mock_node_status,
+        start_available=True,
     ):
         self.config = mock_config
         assert len(mock_config[DOMAIN][CONF_ACCOUNTS]) == 1
         config_dev_ids = mock_config[DOMAIN][CONF_ACCOUNTS][0][CONF_DEVICE_IDS]
+        self._device_info = mock_device_info
         self._devices = list(map(self._get_device, config_dev_ids))
         self._node_info = mock_node_info
         # socket has most up to date status
@@ -110,9 +132,7 @@ class MockSmartbox(object):
         self.sockets = {}
 
     def _get_device(self, dev_id):
-        return {
-            "dev_id": dev_id,
-        }
+        return self._device_info[dev_id]
 
     def _get_session(self):
         mock_session = MagicMock()

@@ -11,9 +11,10 @@ from homeassistant.setup import async_setup_component
 
 from mocks import (
     get_entity_id_from_unique_id,
+    get_object_id,
     get_sensor_entity_id,
-    get_sensor_object_id,
-    get_unique_id,
+    get_sensor_entity_name,
+    get_node_unique_id,
 )
 
 from test_utils import convert_temp, round_temp
@@ -41,7 +42,7 @@ async def test_basic_temp(hass, mock_smartbox):
 
             # check basic properties
             assert state.object_id.startswith(
-                get_sensor_object_id(mock_node, "temperature")
+                get_object_id(get_sensor_entity_name(mock_node, "temperature"))
             )
             assert state.entity_id.startswith(
                 get_sensor_entity_id(mock_node, "temperature")
@@ -51,7 +52,7 @@ async def test_basic_temp(hass, mock_smartbox):
                 state.attributes[ATTR_FRIENDLY_NAME]
                 == f"{mock_node['name']} Temperature"
             )
-            unique_id = get_unique_id(mock_device, mock_node, "temperature")
+            unique_id = get_node_unique_id(mock_device, mock_node, "temperature")
             assert entity_id == get_entity_id_from_unique_id(
                 hass, SENSOR_DOMAIN, unique_id
             )
@@ -104,11 +105,13 @@ async def test_basic_power(hass, mock_smartbox):
             state = hass.states.get(entity_id)
 
             # check basic properties
-            assert state.object_id.startswith(get_sensor_object_id(mock_node, "power"))
+            assert state.object_id.startswith(
+                get_object_id(get_sensor_entity_name(mock_node, "power"))
+            )
             assert state.entity_id.startswith(get_sensor_entity_id(mock_node, "power"))
             assert state.name == f"{mock_node['name']} Power"
             assert state.attributes[ATTR_FRIENDLY_NAME] == f"{mock_node['name']} Power"
-            unique_id = get_unique_id(mock_device, mock_node, "power")
+            unique_id = get_node_unique_id(mock_device, mock_node, "power")
             assert entity_id == get_entity_id_from_unique_id(
                 hass, SENSOR_DOMAIN, unique_id
             )

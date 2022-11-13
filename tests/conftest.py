@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 from const import (
     MOCK_SMARTBOX_CONFIG,
+    MOCK_SMARTBOX_DEVICE_INFO,
     MOCK_SMARTBOX_NODE_INFO,
     MOCK_SMARTBOX_NODE_STATUS,
 )
@@ -51,6 +52,7 @@ def _get_node_status(units):
 def mock_smartbox(request):
     mock_smartbox = MockSmartbox(
         MOCK_SMARTBOX_CONFIG,
+        MOCK_SMARTBOX_DEVICE_INFO,
         MOCK_SMARTBOX_NODE_INFO,
         _get_node_status(request.param),
     )
@@ -72,6 +74,7 @@ def mock_smartbox(request):
 def mock_smartbox_unavailable(request):
     mock_smartbox = MockSmartbox(
         MOCK_SMARTBOX_CONFIG,
+        MOCK_SMARTBOX_DEVICE_INFO,
         MOCK_SMARTBOX_NODE_INFO,
         _get_node_status(request.param),
         False,

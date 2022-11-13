@@ -41,8 +41,9 @@ from custom_components.smartbox.const import (
 from mocks import (
     get_climate_entity_id,
     get_entity_id_from_unique_id,
-    get_climate_object_id,
-    get_unique_id,
+    get_climate_entity_name,
+    get_object_id,
+    get_node_unique_id,
 )
 
 from test_utils import convert_temp, round_temp
@@ -99,8 +100,10 @@ async def test_basic(hass, mock_smartbox):
             state = hass.states.get(entity_id)
 
             # check basic properties
-            assert state.object_id.startswith(get_climate_object_id(mock_node))
-            unique_id = get_unique_id(mock_device, mock_node, "climate")
+            assert state.object_id.startswith(
+                get_object_id(get_climate_entity_name(mock_node))
+            )
+            unique_id = get_node_unique_id(mock_device, mock_node, "climate")
             assert entity_id == get_entity_id_from_unique_id(
                 hass, CLIMATE_DOMAIN, unique_id
             )

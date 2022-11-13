@@ -97,6 +97,16 @@ MOCK_SMARTBOX_CONFIG = {
     }
 }
 
+MOCK_SMARTBOX_DEVICE_INFO = {
+    "test_device_id_1": {
+        "dev_id": "test_device_id_1",
+        "name": "Device 1",
+    },
+    "test_device_id_2": {
+        "dev_id": "test_device_id_2",
+        "name": "Device 2",
+    },
+}
 
 MOCK_SMARTBOX_NODE_INFO = {
     "test_device_id_1": [

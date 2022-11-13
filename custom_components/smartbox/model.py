@@ -43,14 +43,17 @@ class SmartboxDevice(object):
     def __init__(
         self,
         dev_id: str,
+        name: str,
         session: Union[Session, MagicMock],
         socket_reconnect_attempts: int,
         socket_backoff_factor: float,
     ) -> None:
         self._dev_id = dev_id
+        self._name = name
         self._session = session
         self._socket_reconnect_attempts = socket_reconnect_attempts
         self._socket_backoff_factor = socket_backoff_factor
+        self._away = False
 
     async def initialise_nodes(self, hass: HomeAssistant) -> None:
         # Would do in __init__, but needs to be a coroutine
@@ -84,9 +87,7 @@ class SmartboxDevice(object):
 
     def _away_status_update(self, away_status: Dict[str, bool]) -> None:
         _LOGGER.debug(f"Away status update: {away_status}")
-        # update all nodes
-        for node in self._nodes.values():
-            node.away = away_status["away"]
+        self._away = away_status["away"]
 
     def _node_status_update(
         self, node_type: str, addr: int, node_status: Dict[str, Union[float, str, bool]]
@@ -128,6 +129,18 @@ class SmartboxDevice(object):
     def get_nodes(self):
         return self._nodes.values()
 
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def away(self) -> bool:
+        return self._away
+
+    def update_away_status(self, away: bool):
+        self._session.set_device_away_status(self.dev_id, {"away": away})
+        self._away = away
+
 
 class SmartboxNode(object):
     def __init__(
@@ -141,7 +154,6 @@ class SmartboxNode(object):
         self._node_info = node_info
         self._session = session
         self._status = status
-        self._away = False
 
     @property
     def node_id(self) -> str:
@@ -177,18 +189,10 @@ class SmartboxNode(object):
 
     @property
     def away(self):
-        return self._away
-
-    @away.setter
-    def away(self, away):
-        _LOGGER.debug(f"Updating node {self.name} away status: {away}")
-        self._away = away
+        return self._device.away
 
     def update_device_away_status(self, away: bool):
-        self._session.set_device_away_status(self._device.dev_id, {"away": away})
-        # Update current state for all nodes on the device
-        for node in self._device.get_nodes():
-            node.away = away
+        self._device.update_away_status(away)
 
     async def async_update(
         self, hass: HomeAssistant
@@ -250,6 +254,7 @@ async def get_devices(
         await create_smartbox_device(
             hass,
             session_device["dev_id"],
+            session_device["name"],
             session,
             socket_reconnect_attempts,
             socket_backoff_factor,
@@ -262,13 +267,14 @@ async def get_devices(
 async def create_smartbox_device(
     hass: HomeAssistant,
     dev_id: str,
+    name: str,
     session: Union[Session, MagicMock],
     socket_reconnect_attempts: int,
     socket_backoff_factor: float,
 ) -> Union[SmartboxDevice, MagicMock]:
     """Factory function for SmartboxDevices"""
     device = SmartboxDevice(
-        dev_id, session, socket_reconnect_attempts, socket_backoff_factor
+        dev_id, name, session, socket_reconnect_attempts, socket_backoff_factor
     )
     await device.initialise_nodes(hass)
     return device

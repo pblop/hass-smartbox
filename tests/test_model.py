@@ -67,10 +67,10 @@ async def test_create_smartbox_device(hass):
         return_value=mock_dev,
     ) as device_ctor_mock:
         device = await create_smartbox_device(
-            hass, dev_1_id, mock_session, reconnect_attempts, backoff_factor
+            hass, dev_1_id, "Device 1", mock_session, reconnect_attempts, backoff_factor
         )
         device_ctor_mock.assert_called_with(
-            dev_1_id, mock_session, reconnect_attempts, backoff_factor
+            dev_1_id, "Device 1", mock_session, reconnect_attempts, backoff_factor
         )
         mock_dev.initialise_nodes.assert_awaited_with(hass)
         assert device == mock_dev
@@ -78,7 +78,9 @@ async def test_create_smartbox_device(hass):
 
 async def test_get_devices(hass, mock_smartbox):
     dev_1_id = "test_device_id_1"
+    dev_1_name = "Device 1"
     dev_2_id = "test_device_id_2"  # missing
+    dev_2_name = "Device 2"  # missing
     reconnect_attempts = mock_smartbox.config[DOMAIN][CONF_ACCOUNTS][0][
         CONF_SOCKET_RECONNECT_ATTEMPTS
     ]
@@ -86,7 +88,13 @@ async def test_get_devices(hass, mock_smartbox):
         CONF_SOCKET_BACKOFF_FACTOR
     ]
     test_devices = [
-        SmartboxDevice(dev, mock_smartbox.session, reconnect_attempts, backoff_factor)
+        SmartboxDevice(
+            dev["dev_id"],
+            dev["name"],
+            mock_smartbox.session,
+            reconnect_attempts,
+            backoff_factor,
+        )
         for dev in mock_smartbox.session.get_devices()
     ]
     with patch(
@@ -111,10 +119,20 @@ async def test_get_devices(hass, mock_smartbox):
 
         # check we created the devices
         create_smartbox_device_mock.assert_any_await(
-            hass, dev_1_id, mock_smartbox.session, reconnect_attempts, backoff_factor
+            hass,
+            dev_1_id,
+            dev_1_name,
+            mock_smartbox.session,
+            reconnect_attempts,
+            backoff_factor,
         )
         create_smartbox_device_mock.assert_any_await(
-            hass, dev_2_id, mock_smartbox.session, reconnect_attempts, backoff_factor
+            hass,
+            dev_2_id,
+            dev_2_name,
+            mock_smartbox.session,
+            reconnect_attempts,
+            backoff_factor,
         )
         assert devices == test_devices
 
@@ -130,7 +148,7 @@ async def test_smartbox_device_init(hass, mock_smartbox):
         side_effect=[node_sentinel_1, node_sentinel_2],
         autospec=True,
     ) as smartbox_node_ctor_mock:
-        device = SmartboxDevice(dev_id, mock_smartbox.session, 7, 0.2)
+        device = SmartboxDevice(dev_id, "Device 1", mock_smartbox.session, 7, 0.2)
         assert device.dev_id == dev_id
         await device.initialise_nodes(hass)
         mock_smartbox.session.get_nodes.assert_called_with(dev_id)
@@ -168,7 +186,7 @@ async def test_smartbox_device_on_dev_data(hass):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(dev_id, mock_session, 5, 0.3)
+        device = SmartboxDevice(dev_id, "Device 1", mock_session, 5, 0.3)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
             ("thm", 2): mock_node_2,
@@ -176,13 +194,11 @@ async def test_smartbox_device_on_dev_data(hass):
 
         mock_dev_data = {"away_status": {"away": True}}
         device.on_dev_data(mock_dev_data)
-        assert mock_node_1.away
-        assert mock_node_2.away
+        assert device.away
 
         mock_dev_data = {"away_status": {"away": False}}
         device.on_dev_data(mock_dev_data)
-        assert not mock_node_1.away
-        assert not mock_node_2.away
+        assert not device.away
 
 
 async def test_smartbox_device_on_update(hass, caplog):
@@ -195,7 +211,7 @@ async def test_smartbox_device_on_update(hass, caplog):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(dev_id, mock_session, 2, 0.1)
+        device = SmartboxDevice(dev_id, "Device 1", mock_session, 2, 0.1)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
             ("thm", 2): mock_node_2,
@@ -237,7 +253,7 @@ async def test_smartbox_device_ignored_messages(hass, caplog):
         "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
         new_callable=NonCallableMock,
     ):
-        device = SmartboxDevice(dev_id, mock_session, 1, 0.4)
+        device = SmartboxDevice(dev_id, "Device 1", mock_session, 1, 0.4)
         device._nodes = {(HEATER_NODE_TYPE_HTR, 1): mock_node_1}
 
         # Test we error on message types we haven't seen
@@ -272,6 +288,7 @@ async def test_smartbox_node(hass):
     dev_id = "test_device_id_1"
     mock_device = MagicMock()
     mock_device.dev_id = dev_id
+    mock_device.away = False
     node_addr = 3
     node_type = "thm"
     node_name = "Bathroom Thermostat"
@@ -294,7 +311,7 @@ async def test_smartbox_node(hass):
     mock_session.set_status.assert_called_with(dev_id, node_info, {"stemp": 23.5})
 
     assert not node.away
-    node.away = True
+    mock_device.away = True
     assert node.away
 
     status_update = await node.async_update(hass)
