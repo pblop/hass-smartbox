@@ -57,12 +57,7 @@ def get_climate_entity_name(mock_node: Dict[str, Any]) -> str:
 
 
 def get_sensor_entity_name(mock_node: Dict[str, Any], sensor_type: str) -> str:
-    if sensor_type == "temperature":
-        return f"{mock_node['name']} Temperature"
-    elif sensor_type == "power":
-        return f"{mock_node['name']} Power"
-    else:
-        pytest.fail(f"Unhandled sensor type {sensor_type}")
+    return f"{mock_node['name']} {sensor_type.capitalize()}"
 
 
 def get_climate_object_id(mock_node: Dict[str, Any]) -> str:
