@@ -48,11 +48,11 @@ class AwaySwitch(SwitchEntity):
 
     def turn_on(self, **kwargs):  # pylint: disable=unused-argument
         """Turn on the switch."""
-        return self._device.update_away_status(True)
+        return self._device.set_away_status(True)
 
     def turn_off(self, **kwargs):  # pylint: disable=unused-argument
         """Turn off the switch."""
-        return self._device.update_away_status(False)
+        return self._device.set_away_status(False)
 
     @property
     def is_on(self):

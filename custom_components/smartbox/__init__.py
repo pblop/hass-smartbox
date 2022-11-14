@@ -70,7 +70,7 @@ CONFIG_SCHEMA = vol.Schema(
     extra=vol.ALLOW_EXTRA,
 )
 
-PLATFORMS = ["climate", "sensor", "switch"]
+PLATFORMS = ["climate", "number", "sensor", "switch"]
 
 
 async def async_setup(hass: HomeAssistant, config: dict) -> bool:

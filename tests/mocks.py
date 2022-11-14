@@ -3,6 +3,7 @@ from typing import Any, Dict
 from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
+from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
 from homeassistant.components.sensor import DOMAIN as SENSOR_DOMAIN
 from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.helpers import entity_registry
@@ -66,6 +67,10 @@ def get_away_status_switch_entity_name(mock_device: Dict[str, Any]) -> str:
     return f"{mock_device['name']} Away Status"
 
 
+def get_power_limit_number_entity_name(mock_device: Dict[str, Any]) -> str:
+    return f"{mock_device['name']} Power Limit"
+
+
 def get_object_id(entity_name: str) -> str:
     return entity_name.lower().replace(" ", "_")
 
@@ -87,6 +92,11 @@ def get_sensor_entity_id(mock_node: Dict[str, Any], sensor_type: str) -> str:
 def get_away_status_switch_entity_id(mock_device: Dict[str, Any]) -> str:
     object_id = get_object_id(get_away_status_switch_entity_name(mock_device))
     return get_entity_id_from_object_id(object_id, SWITCH_DOMAIN)
+
+
+def get_power_limit_number_entity_id(mock_device: Dict[str, Any]) -> str:
+    object_id = get_object_id(get_power_limit_number_entity_name(mock_device))
+    return get_entity_id_from_object_id(object_id, NUMBER_DOMAIN)
 
 
 def get_device_unique_id(mock_device: Dict[str, Any], entity_type: str) -> str:

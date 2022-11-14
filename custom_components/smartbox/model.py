@@ -1,6 +1,5 @@
 import asyncio
 import logging
-import re
 
 from homeassistant.const import (
     TEMP_CELSIUS,
@@ -33,12 +32,6 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-_AWAY_STATUS_UPDATE_RE = re.compile(r"^/mgr/away_status")
-_NODE_STATUS_UPDATE_RE = re.compile(r"^/([^/]+)/(\d+)/status")
-_MESSAGE_SKIP_RE = re.compile(
-    r"^/connected|/mgr/nodes|/([^/]+)/(\d+)/(prog|setup|version)"
-)
-
 
 class SmartboxDevice(object):
     def __init__(
@@ -55,6 +48,7 @@ class SmartboxDevice(object):
         self._socket_reconnect_attempts = socket_reconnect_attempts
         self._socket_backoff_factor = socket_backoff_factor
         self._away = False
+        self._power_limit: int = 0
 
     async def initialise_nodes(self, hass: HomeAssistant) -> None:
         # Would do in __init__, but needs to be a coroutine
@@ -78,6 +72,7 @@ class SmartboxDevice(object):
         )
 
         self._update_manager.subscribe_to_device_away_status(self._away_status_update)
+        self._update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         self._update_manager.subscribe_to_node_status(self._node_status_update)
 
         _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
@@ -86,6 +81,10 @@ class SmartboxDevice(object):
     def _away_status_update(self, away_status: Dict[str, bool]) -> None:
         _LOGGER.debug(f"Away status update: {away_status}")
         self._away = away_status["away"]
+
+    def _power_limit_update(self, power_limit: int) -> None:
+        _LOGGER.debug(f"power_limit update: {power_limit}")
+        self._power_limit = power_limit
 
     def _node_status_update(
         self, node_type: str, addr: int, node_status: Dict[str, Union[float, str, bool]]
@@ -112,9 +111,17 @@ class SmartboxDevice(object):
     def away(self) -> bool:
         return self._away
 
-    def update_away_status(self, away: bool):
+    def set_away_status(self, away: bool):
         self._session.set_device_away_status(self.dev_id, {"away": away})
         self._away = away
+
+    @property
+    def power_limit(self) -> int:
+        return self._power_limit
+
+    def set_power_limit(self, power_limit: int) -> None:
+        self._session.set_device_power_limit(self.dev_id, power_limit)
+        self._power_limit = power_limit
 
 
 class SmartboxNode(object):
@@ -167,7 +174,7 @@ class SmartboxNode(object):
         return self._device.away
 
     def update_device_away_status(self, away: bool):
-        self._device.update_away_status(away)
+        self._device.set_away_status(away)
 
     async def async_update(
         self, hass: HomeAssistant
