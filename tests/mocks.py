@@ -10,6 +10,7 @@ from custom_components.smartbox.const import (
     DOMAIN,
     CONF_ACCOUNTS,
     CONF_DEVICE_IDS,
+    HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR_MOD,
 )
 
@@ -34,10 +35,13 @@ def mock_node(dev_id, addr, node_type, mode="auto"):
         "units": "C",
         "sync_status": "ok",
         "locked": False,
-        "active": True,
         "power": "854",
         "mode": mode,
     }
+    if node_type == HEATER_NODE_TYPE_ACM:
+        node.status["charging"] = True
+    else:
+        node.status["active"] = True
     if node_type == HEATER_NODE_TYPE_HTR_MOD:
         node.status["on"] = True
         node.status["selected_temp"] = "comfort"
@@ -235,3 +239,11 @@ class MockSmartbox(object):
                 "body": self._get_socket_status(dev_id, addr),
             }
         )
+
+
+def active_or_charging_update(node_type: str, active: bool) -> Dict[str, Any]:
+    return (
+        {"charging": active}
+        if node_type == HEATER_NODE_TYPE_ACM
+        else {"active": active}
+    )

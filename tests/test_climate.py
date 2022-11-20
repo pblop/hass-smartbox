@@ -32,6 +32,8 @@ from custom_components.smartbox.climate import (
     status_to_hvac_action,
 )
 from custom_components.smartbox.const import (
+    HEATER_NODE_TYPE_HTR,
+    HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR_MOD,
     PRESET_FROST,
     PRESET_SCHEDULE,
@@ -39,6 +41,7 @@ from custom_components.smartbox.const import (
 )
 
 from mocks import (
+    active_or_charging_update,
     get_climate_entity_id,
     get_entity_id_from_unique_id,
     get_climate_entity_name,
@@ -52,10 +55,34 @@ _LOGGER = logging.getLogger(__name__)
 
 
 def test_status_to_hvac_action():
-    assert status_to_hvac_action({"active": True}) == HVACAction.HEATING
-    assert status_to_hvac_action({"active": False}) == HVACAction.IDLE
+    assert (
+        status_to_hvac_action(HEATER_NODE_TYPE_HTR, {"active": True})
+        == HVACAction.HEATING
+    )
+    assert (
+        status_to_hvac_action(HEATER_NODE_TYPE_HTR, {"active": False})
+        == HVACAction.IDLE
+    )
+    assert (
+        status_to_hvac_action(HEATER_NODE_TYPE_ACM, {"charging": True})
+        == HVACAction.HEATING
+    )
+    assert (
+        status_to_hvac_action(HEATER_NODE_TYPE_ACM, {"charging": False})
+        == HVACAction.IDLE
+    )
+    assert (
+        status_to_hvac_action(HEATER_NODE_TYPE_HTR_MOD, {"active": True})
+        == HVACAction.HEATING
+    )
+    assert (
+        status_to_hvac_action(HEATER_NODE_TYPE_HTR_MOD, {"active": False})
+        == HVACAction.IDLE
+    )
     with pytest.raises(KeyError):
-        status_to_hvac_action({})
+        status_to_hvac_action(HEATER_NODE_TYPE_HTR, {})
+    with pytest.raises(KeyError):
+        status_to_hvac_action(HEATER_NODE_TYPE_ACM, {"active": True})
 
 
 def _check_state(hass, mock_node, mock_node_status, state):
@@ -87,7 +114,9 @@ def _check_state(hass, mock_node, mock_node_status, state):
         convert_temp(hass, mock_node_status["units"], target_temp),
     )
 
-    assert state.attributes[ATTR_HVAC_ACTION] == status_to_hvac_action(mock_node_status)
+    assert state.attributes[ATTR_HVAC_ACTION] == status_to_hvac_action(
+        mock_node["type"], mock_node_status
+    )
 
 
 async def test_basic(hass, mock_smartbox):
@@ -631,14 +660,18 @@ async def test_hvac_action(hass, mock_smartbox):
             entity_id = get_climate_entity_id(mock_node)
 
             mock_smartbox.generate_socket_status_update(
-                mock_device, mock_node, {"active": False}
+                mock_device,
+                mock_node,
+                active_or_charging_update(mock_node["type"], False),
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
             assert state.attributes[ATTR_HVAC_ACTION] == HVACAction.IDLE
 
             mock_smartbox.generate_socket_status_update(
-                mock_device, mock_node, {"active": True}
+                mock_device,
+                mock_node,
+                active_or_charging_update(mock_node["type"], True),
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)

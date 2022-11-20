@@ -14,7 +14,7 @@ from typing import Any, Callable, Dict, Optional, Union
 from unittest.mock import MagicMock
 
 from .const import DOMAIN, HEATER_NODE_TYPE_HTR_MOD, SMARTBOX_NODES
-from .model import get_temperature_unit, is_heater_node, SmartboxNode
+from .model import get_temperature_unit, is_heater_node, is_heating, SmartboxNode
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -126,4 +126,8 @@ class PowerSensor(SmartboxSensorBase):
         # TODO: is this correct? The heater seems to report power usage all the
         # time otherwise, which doesn't make sense and doesn't tally with the
         # graphs in the vendor app UI
-        return self._status["power"] if self._status["active"] else 0
+        return (
+            self._status["power"]
+            if is_heating(self._node.node_type, self._status)
+            else 0
+        )

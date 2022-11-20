@@ -173,7 +173,8 @@ MOCK_SMARTBOX_NODE_STATUS = {
             "units": "C",
             "sync_status": "ok",
             "locked": False,
-            "active": True,
+            # acm nodes have a 'charging' state rather than 'active'
+            "charging": True,
             "power": "620",
             "mode": "manual",
         },

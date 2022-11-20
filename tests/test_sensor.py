@@ -10,6 +10,7 @@ from homeassistant.const import (
 from homeassistant.setup import async_setup_component
 
 from mocks import (
+    active_or_charging_update,
     get_entity_id_from_unique_id,
     get_object_id,
     get_sensor_entity_id,
@@ -19,7 +20,9 @@ from mocks import (
 
 from test_utils import convert_temp, round_temp
 
-from custom_components.smartbox.const import HEATER_NODE_TYPE_HTR_MOD
+from custom_components.smartbox.const import (
+    HEATER_NODE_TYPE_HTR_MOD,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -116,11 +119,11 @@ async def test_basic_power(hass, mock_smartbox):
                 hass, SENSOR_DOMAIN, unique_id
             )
 
-            # make sure it's active
+            # make sure it's active/charging
             mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
-                {"active": True},
+                active_or_charging_update(mock_node["type"], True),
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)
@@ -130,11 +133,11 @@ async def test_basic_power(hass, mock_smartbox):
             assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
             assert float(state.state) == approx(float(mock_node_status["power"]))
 
-            # make sure it's inactive
+            # make sure it's inactive/not charging
             mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
-                {"active": False},
+                active_or_charging_update(mock_node["type"], False),
             )
             await hass.helpers.entity_component.async_update_entity(entity_id)
             state = hass.states.get(entity_id)

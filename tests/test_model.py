@@ -42,6 +42,7 @@ from custom_components.smartbox.model import (
     get_preset_modes,
     get_target_temperature,
     is_heater_node,
+    is_heating,
     is_supported_node,
     set_hvac_mode_args,
     set_preset_mode_status_update,
@@ -710,3 +711,16 @@ def test_set_preset_mode_status_update():
         set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_HOME)
     with pytest.raises(AssertionError):
         set_preset_mode_status_update(HEATER_NODE_TYPE_HTR_MOD, {}, PRESET_AWAY)
+
+
+def test_status_to_hvac_action():
+    assert is_heating(HEATER_NODE_TYPE_HTR, {"active": True})
+    assert not is_heating(HEATER_NODE_TYPE_HTR, {"active": False})
+    assert is_heating(HEATER_NODE_TYPE_ACM, {"charging": True})
+    assert not is_heating(HEATER_NODE_TYPE_ACM, {"charging": False})
+    assert is_heating(HEATER_NODE_TYPE_HTR_MOD, {"active": True})
+    assert not is_heating(HEATER_NODE_TYPE_HTR_MOD, {"active": False})
+    with pytest.raises(KeyError):
+        is_heating(HEATER_NODE_TYPE_HTR, {})
+    with pytest.raises(KeyError):
+        is_heating(HEATER_NODE_TYPE_ACM, {"active": True})

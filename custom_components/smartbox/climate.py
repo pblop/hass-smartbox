@@ -18,7 +18,11 @@ import logging
 from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import MagicMock
 
-from .const import DOMAIN, HEATER_NODE_TYPE_HTR_MOD, SMARTBOX_NODES
+from .const import (
+    DOMAIN,
+    HEATER_NODE_TYPE_HTR_MOD,
+    SMARTBOX_NODES,
+)
 from .model import (
     get_hvac_mode,
     get_preset_mode,
@@ -26,6 +30,7 @@ from .model import (
     get_target_temperature,
     get_temperature_unit,
     is_heater_node,
+    is_heating,
     set_hvac_mode_args,
     set_preset_mode_status_update,
     set_temperature_args,
@@ -57,8 +62,10 @@ async def async_setup_platform(
     _LOGGER.debug("Finished setting up Smartbox climate platform")
 
 
-def status_to_hvac_action(status: Dict[str, Union[float, str, bool]]) -> str:
-    return HVACAction.HEATING if status["active"] else HVACAction.IDLE
+def status_to_hvac_action(
+    node_type: str, status: Dict[str, Union[float, str, bool]]
+) -> str:
+    return HVACAction.HEATING if is_heating(node_type, status) else HVACAction.IDLE
 
 
 class SmartboxHeater(ClimateEntity):
@@ -125,7 +132,7 @@ class SmartboxHeater(ClimateEntity):
     @property
     def hvac_action(self) -> str:
         """Return current operation ie. heat or idle."""
-        action = status_to_hvac_action(self._status)
+        action = status_to_hvac_action(self._node.node_type, self._status)
         return action
 
     @property

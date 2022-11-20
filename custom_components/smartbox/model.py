@@ -23,6 +23,7 @@ from unittest.mock import MagicMock
 
 from .const import (
     GITHUB_ISSUES_URL,
+    HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR_MOD,
     HEATER_NODE_TYPES,
     PRESET_FROST,
@@ -471,3 +472,7 @@ def set_preset_mode_status_update(
         return {"on": True, "mode": "manual", "selected_temp": "ice"}
     else:
         raise ValueError(f"Unsupported preset {preset_mode} for node type {node_type}")
+
+
+def is_heating(node_type: str, status: Dict[str, Any]) -> str:
+    return status["charging"] if node_type == HEATER_NODE_TYPE_ACM else status["active"]
