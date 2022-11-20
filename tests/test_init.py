@@ -155,6 +155,12 @@ async def test_setup_missing_and_extra_devices(hass, caplog):
         logging.WARNING,
         f"Found device {dev_3_id} which was not configured - ignoring",
     ) in caplog.record_tuples
+    # Check there are no other errors
+    for module, level, message in caplog.record_tuples:
+        if module == "custom_components.smartbox" and level == logging.ERROR:
+            assert message.startswith("Configured device") or message.startswith(
+                "Found device"
+            )
 
 
 async def test_setup_unsupported_nodes(hass, caplog):
