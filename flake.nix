@@ -1,5 +1,5 @@
 {
-  description = "Smartbox python package";
+  description = "Smartbox Home Assistant Custom Component";
 
   inputs = {
     nixpkgs.url = "nixpkgs/nixos-unstable";
