@@ -190,15 +190,15 @@ async def test_smartbox_device_on_dev_data(hass):
         device = SmartboxDevice(dev_id, "Device 1", mock_session, 5, 0.3)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
-            ("thm", 2): mock_node_2,
+            ("acm", 2): mock_node_2,
         }
 
-        mock_dev_data = {"away_status": {"away": True}}
-        device.on_dev_data(mock_dev_data)
+        mock_dev_data = {"away": True}
+        device._away_status_update(mock_dev_data)
         assert device.away
 
-        mock_dev_data = {"away_status": {"away": False}}
-        device.on_dev_data(mock_dev_data)
+        mock_dev_data = {"away": False}
+        device._away_status_update(mock_dev_data)
         assert not device.away
 
 
@@ -215,27 +215,24 @@ async def test_smartbox_device_on_update(hass, caplog):
         device = SmartboxDevice(dev_id, "Device 1", mock_session, 2, 0.1)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
-            ("thm", 2): mock_node_2,
+            ("acm", 2): mock_node_2,
         }
 
         mock_status = {"foo": "bar"}
-        mock_update = {"path": "/htr/1/status", "body": mock_status}
-        device.on_update(mock_update)
+        device._node_status_update("htr", 1, mock_status)
         mock_node_1.update_status.assert_called_with(mock_status)
         mock_node_2.update_status.assert_not_called()
 
         mock_node_1.reset_mock()
         mock_node_2.reset_mock()
-        mock_update = {"path": "/thm/2/status", "body": mock_status}
-        device.on_update(mock_update)
+        device._node_status_update("acm", 2, mock_status)
         mock_node_2.update_status.assert_called_with(mock_status)
         mock_node_1.update_status.assert_not_called()
 
         # test unknown node
         mock_node_1.reset_mock()
         mock_node_2.reset_mock()
-        mock_update = {"path": "/htr/3/status", "body": mock_status}
-        device.on_update(mock_update)
+        device._node_status_update("htr", 3, mock_status)
         mock_node_1.update_status.assert_not_called()
         mock_node_2.update_status.assert_not_called()
         assert (
@@ -245,54 +242,14 @@ async def test_smartbox_device_on_update(hass, caplog):
         ) in caplog.record_tuples
 
 
-async def test_smartbox_device_ignored_messages(hass, caplog):
-    dev_id = "test_device_id_1"
-    mock_session = MagicMock()
-    mock_node_1 = MagicMock()
-    # Simulate initialise_nodes with mock data, make sure nobody calls the real one
-    with patch(
-        "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
-        new_callable=NonCallableMock,
-    ):
-        device = SmartboxDevice(dev_id, "Device 1", mock_session, 1, 0.4)
-        device._nodes = {(HEATER_NODE_TYPE_HTR, 1): mock_node_1}
-
-        # Test we error on message types we haven't seen
-        mock_update = {"path": "/htr/1/new_update", "body": {}}
-        device.on_update(mock_update)
-        mock_node_1.update_status.assert_not_called()
-        assert (
-            "custom_components.smartbox.model",
-            logging.ERROR,
-            "Couldn't match update {'path': '/htr/1/new_update', 'body': {}}",
-        ) in caplog.record_tuples
-
-        # Test we skip certain message types
-        def test_message_type(path):
-            mock_update = {"path": path, "body": {}}
-            device.on_update(mock_update)
-            mock_node_1.update_status.assert_not_called()
-            assert (
-                "custom_components.smartbox.model",
-                logging.DEBUG,
-                f"Skipping update {{'path': '{path}', 'body': {{}}}}",
-            ) in caplog.record_tuples
-
-        test_message_type("/connected")
-        test_message_type("/mgr/nodes")
-        test_message_type("/htr/1/prog")
-        test_message_type("/htr/1/setup")
-        test_message_type("/htr/1/version")
-
-
 async def test_smartbox_node(hass):
     dev_id = "test_device_id_1"
     mock_device = MagicMock()
     mock_device.dev_id = dev_id
     mock_device.away = False
     node_addr = 3
-    node_type = "thm"
-    node_name = "Bathroom Thermostat"
+    node_type = "htr"
+    node_name = "Bathroom Heater"
     node_info = {"addr": node_addr, "name": node_name, "type": node_type}
     mock_session = MagicMock()
     initial_status = {"mtemp": "21.4", "stemp": "22.5"}
@@ -325,7 +282,6 @@ def test_is_heater_node():
     assert is_heater_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_HTR))
     assert is_heater_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_HTR_MOD))
     assert is_heater_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_ACM))
-    assert not is_heater_node(mock_node(dev_id, addr, "thm"))
     assert not is_heater_node(mock_node(dev_id, addr, "sldkfjsd"))
 
 
@@ -335,7 +291,6 @@ def test_is_supported_node():
     assert is_supported_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_HTR))
     assert is_supported_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_HTR_MOD))
     assert is_supported_node(mock_node(dev_id, addr, HEATER_NODE_TYPE_ACM))
-    assert not is_supported_node(mock_node(dev_id, addr, "thm"))
     assert not is_supported_node(mock_node(dev_id, addr, "oijijr"))
 
 

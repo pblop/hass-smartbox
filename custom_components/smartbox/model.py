@@ -17,7 +17,7 @@ from homeassistant.components.climate.const import (
     PRESET_HOME,
 )
 from homeassistant.core import HomeAssistant
-from smartbox import Session, SocketSession
+from smartbox import Session, UpdateManager
 from typing import Any, Dict, List, Union
 from unittest.mock import MagicMock
 
@@ -70,21 +70,18 @@ class SmartboxDevice(object):
             self._nodes[(node.node_type, node.addr)] = node
 
         _LOGGER.debug(f"Creating SocketSession for device {self._dev_id}")
-        self._socket_session = SocketSession(
+        self._update_manager = UpdateManager(
             self._session,
             self._dev_id,
-            lambda data: self.on_dev_data(data),
-            lambda data: self.on_update(data),
             reconnect_attempts=self._socket_reconnect_attempts,
             backoff_factor=self._socket_backoff_factor,
         )
 
-        _LOGGER.debug(f"Starting SocketSession task for device {self._dev_id}")
-        asyncio.create_task(self._socket_session.run())
+        self._update_manager.subscribe_to_device_away_status(self._away_status_update)
+        self._update_manager.subscribe_to_node_status(self._node_status_update)
 
-    def on_dev_data(self, data: Dict[str, Dict[str, bool]]) -> None:
-        _LOGGER.debug(f"Received dev_data: {data}")
-        self._away_status_update(data["away_status"])
+        _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
+        asyncio.create_task(self._update_manager.run())
 
     def _away_status_update(self, away_status: Dict[str, bool]) -> None:
         _LOGGER.debug(f"Away status update: {away_status}")
@@ -99,29 +96,6 @@ class SmartboxDevice(object):
             node.update_status(node_status)
         else:
             _LOGGER.error(f"Received update for unknown node {node_type} {addr}")
-
-    def on_update(
-        self,
-        data: Dict[str, Any],
-    ) -> None:
-        _LOGGER.debug(f"Received update: {data}")
-
-        m = _NODE_STATUS_UPDATE_RE.match(data["path"])
-        if m:
-            self._node_status_update(m.group(1), int(m.group(2)), data["body"])
-            return
-
-        m = _AWAY_STATUS_UPDATE_RE.match(data["path"])
-        if m:
-            self._away_status_update(data["body"])
-            return
-
-        m = _MESSAGE_SKIP_RE.match(data["path"])
-        if m:
-            _LOGGER.debug(f"Skipping update {data}")
-            return
-
-        _LOGGER.error(f"Couldn't match update {data}")
 
     @property
     def dev_id(self) -> str:
@@ -206,7 +180,6 @@ def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
 
 
 def is_supported_node(node: Union[SmartboxNode, MagicMock]) -> bool:
-    # TODO: add support for 'thm' (thermostat) nodes
     return is_heater_node(node)
 
 

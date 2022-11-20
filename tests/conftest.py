@@ -63,7 +63,7 @@ def mock_smartbox(request):
         return_value=mock_smartbox.session,
     ):
         with patch(
-            "custom_components.smartbox.model.SocketSession",
+            "smartbox.update_manager.SocketSession",
             autospec=True,
             side_effect=mock_smartbox.get_mock_socket,
         ):
@@ -86,7 +86,7 @@ def mock_smartbox_unavailable(request):
         return_value=mock_smartbox.session,
     ):
         with patch(
-            "custom_components.smartbox.model.SocketSession",
+            "smartbox.update_manager.SocketSession",
             autospec=True,
             side_effect=mock_smartbox.get_mock_socket,
         ):
