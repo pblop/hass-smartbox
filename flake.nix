@@ -26,6 +26,8 @@
       ];
       packages = with pkgs; [
         black
+        mypy
+        py-spy
         python3Packages.flake8
       ];
     };
