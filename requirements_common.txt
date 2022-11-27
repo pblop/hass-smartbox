@@ -1,1 +1,1 @@
-smartbox==1.2.0b3
+smartbox==1.2.0b5
