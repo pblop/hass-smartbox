@@ -41,6 +41,7 @@ def mock_node(dev_id, addr, node_type, mode="auto"):
     }
     if node_type == HEATER_NODE_TYPE_ACM:
         node.status["charging"] = True
+        node.status["charge_level"] = 4
     else:
         node.status["active"] = True
     if node_type == HEATER_NODE_TYPE_HTR_MOD:

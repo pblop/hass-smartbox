@@ -1,7 +1,9 @@
 from homeassistant.const import (
     ATTR_LOCKED,
+    DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_POWER,
+    PERCENTAGE,
     POWER_WATT,
 )
 from homeassistant.components.sensor import (
@@ -13,7 +15,12 @@ import logging
 from typing import Any, Callable, Dict, Optional, Union
 from unittest.mock import MagicMock
 
-from .const import DOMAIN, HEATER_NODE_TYPE_HTR_MOD, SMARTBOX_NODES
+from .const import (
+    DOMAIN,
+    HEATER_NODE_TYPE_ACM,
+    HEATER_NODE_TYPE_HTR_MOD,
+    SMARTBOX_NODES,
+)
 from .model import get_temperature_unit, is_heater_node, is_heating, SmartboxNode
 
 _LOGGER = logging.getLogger(__name__)
@@ -30,6 +37,7 @@ async def async_setup_platform(
     if discovery_info is None:
         return
 
+    # Temperature
     async_add_entities(
         [
             TemperatureSensor(node)
@@ -38,11 +46,21 @@ async def async_setup_platform(
         ],
         True,
     )
+    # Power
     async_add_entities(
         [
             PowerSensor(node)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if is_heater_node(node) and node.node_type != HEATER_NODE_TYPE_HTR_MOD
+        ],
+        True,
+    )
+    # Charge Level
+    async_add_entities(
+        [
+            ChargeLevelSensor(node)
+            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            if is_heater_node(node) and node.node_type == HEATER_NODE_TYPE_ACM
         ],
         True,
     )
@@ -122,7 +140,7 @@ class PowerSensor(SmartboxSensorBase):
         return f"{self._node.node_id}_power"
 
     @property
-    def native_value(self) -> Union[float, int]:
+    def native_value(self) -> float:
         # TODO: is this correct? The heater seems to report power usage all the
         # time otherwise, which doesn't make sense and doesn't tally with the
         # graphs in the vendor app UI
@@ -131,3 +149,26 @@ class PowerSensor(SmartboxSensorBase):
             if is_heating(self._node.node_type, self._status)
             else 0
         )
+
+
+class ChargeLevelSensor(SmartboxSensorBase):
+    """Smartbox storage heater charge level sensor"""
+
+    device_class = DEVICE_CLASS_BATTERY
+    native_unit_of_measurement = PERCENTAGE
+    state_class = STATE_CLASS_MEASUREMENT
+
+    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+        super().__init__(node)
+
+    @property
+    def name(self) -> str:
+        return f"{self._node.name} Charge Level"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._node.node_id}_charge_level"
+
+    @property
+    def native_value(self) -> int:
+        return self._status["charge_level"]

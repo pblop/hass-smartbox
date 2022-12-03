@@ -1,3 +1,5 @@
+from typing import Any, Dict, List
+
 from custom_components.smartbox.const import (
     DOMAIN,
     CONF_ACCOUNTS,
@@ -155,7 +157,7 @@ MOCK_SMARTBOX_NODE_INFO = {
     ],
 }
 
-MOCK_SMARTBOX_NODE_STATUS = {
+MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
     "test_device_id_1": [
         {
             "mtemp": "25.7",
@@ -175,6 +177,7 @@ MOCK_SMARTBOX_NODE_STATUS = {
             "locked": False,
             # acm nodes have a 'charging' state rather than 'active'
             "charging": True,
+            "charge_level": 2,
             "power": "620",
             "mode": "manual",
         },

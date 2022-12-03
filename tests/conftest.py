@@ -1,5 +1,6 @@
 from copy import deepcopy
 import pytest
+from typing import Any, Dict
 from unittest.mock import patch
 
 from const import (
@@ -34,7 +35,7 @@ def skip_notifications_fixture():
         yield
 
 
-def _get_node_status(units):
+def _get_node_status(units: str) -> Dict[str, Any]:
     data = deepcopy(MOCK_SMARTBOX_NODE_STATUS)
     if units == "F":
         for dev_id in data:
