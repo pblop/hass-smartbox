@@ -69,7 +69,14 @@ smartbox:
 
 ### Use in energy dashboard
 
-To use the values in the Energy dashboard of Home Assistant, you have to aggregate the power sensors into energy sensors via an integration (https://www.home-assistant.io/integrations/integration/#energy)
+To use the values in the Energy dashboard of Home Assistant, you have to
+aggregate the power sensors into energy sensors via an integration
+(https://www.home-assistant.io/integrations/integration/#energy)
+
+*WARNING*: currently the power sensors created by this component seem to
+misreport power usage quite significantly. This is because they record power
+used when the status of the device is 'active', but status updates are very
+infrequent and so this won't be accurate.
 
 ```
 sensor:
@@ -129,7 +136,6 @@ file a [Github issue] with any problems.
 
 ## TODO
 * config_flow (only configured via yaml atm)
-* Support device grouping
 * Handle adding and removing entities properly
 * Graceful cleanup/shutdown of update task
 
