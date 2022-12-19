@@ -119,7 +119,7 @@ def _check_state(hass, mock_node, mock_node_status, state):
     )
 
 
-async def test_basic(hass, mock_smartbox):
+async def test_basic(hass, mock_smartbox, caplog):
     assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
     await hass.async_block_till_done()
 
@@ -164,6 +164,14 @@ async def test_basic(hass, mock_smartbox):
                 mock_device["dev_id"], mock_node
             )
             _check_state(hass, mock_node, mock_node_status, new_state)
+
+    # Make sure we don't log any errors during setup
+    errors = [
+        record
+        for record in caplog.get_records("call")
+        if record.levelno >= logging.ERROR
+    ]
+    assert not errors
 
 
 async def test_unavailable(hass, mock_smartbox):

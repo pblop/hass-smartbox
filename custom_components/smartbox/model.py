@@ -17,7 +17,7 @@ from homeassistant.components.climate.const import (
 )
 from homeassistant.core import HomeAssistant
 from smartbox import Session, UpdateManager
-from typing import Any, Dict, List, Union
+from typing import Any, cast, Dict, List, Union
 from unittest.mock import MagicMock
 
 from .const import (
@@ -60,7 +60,10 @@ class SmartboxDevice(object):
             status = await hass.async_add_executor_job(
                 self._session.get_status, self._dev_id, node_info
             )
-            node = SmartboxNode(self, node_info, self._session, status)
+            setup = await hass.async_add_executor_job(
+                self._session.get_setup, self._dev_id, node_info
+            )
+            node = SmartboxNode(self, node_info, self._session, status, setup)
             self._nodes[(node.node_type, node.addr)] = node
 
         _LOGGER.debug(f"Creating SocketSession for device {self._dev_id}")
@@ -74,6 +77,7 @@ class SmartboxDevice(object):
         self._update_manager.subscribe_to_device_away_status(self._away_status_update)
         self._update_manager.subscribe_to_device_power_limit(self._power_limit_update)
         self._update_manager.subscribe_to_node_status(self._node_status_update)
+        self._update_manager.subscribe_to_node_setup(self._node_setup_update)
 
         _LOGGER.debug(f"Starting UpdateManager task for device {self._dev_id}")
         asyncio.create_task(self._update_manager.run())
@@ -94,7 +98,17 @@ class SmartboxDevice(object):
         if node is not None:
             node.update_status(node_status)
         else:
-            _LOGGER.error(f"Received update for unknown node {node_type} {addr}")
+            _LOGGER.error(f"Received status update for unknown node {node_type} {addr}")
+
+    def _node_setup_update(
+        self, node_type: str, addr: int, node_setup: Dict[str, Union[float, str, bool]]
+    ) -> None:
+        _LOGGER.debug(f"Node setup update: {node_setup}")
+        node = self._nodes.get((node_type, addr), None)
+        if node is not None:
+            node.update_setup(node_setup)
+        else:
+            _LOGGER.error(f"Received setup update for unknown node {node_type} {addr}")
 
     @property
     def dev_id(self) -> str:
@@ -131,11 +145,13 @@ class SmartboxNode(object):
         node_info: Dict[str, Any],
         session: Union[Session, MagicMock],
         status: Dict[str, Any],
+        setup: Dict[str, Any],
     ) -> None:
         self._device = device
         self._node_info = node_info
         self._session = session
         self._status = status
+        self._setup = setup
 
     @property
     def node_id(self) -> str:
@@ -163,6 +179,16 @@ class SmartboxNode(object):
         _LOGGER.debug(f"Updating node {self.name} status: {status}")
         self._status = status
 
+    SetupDict = Dict[str, Union[float, str, bool, Dict[str, bool]]]
+
+    @property
+    def setup(self) -> SetupDict:
+        return self._setup
+
+    def update_setup(self, setup: Dict[str, Union[float, str, bool]]) -> None:
+        _LOGGER.debug(f"Updating node {self.name} setup: {setup}")
+        self._setup = setup
+
     def set_status(self, **status_args) -> Dict[str, Union[float, str, bool]]:
         self._session.set_status(self._device.dev_id, self._node_info, status_args)
         # update our status locally until we get an update
@@ -180,6 +206,20 @@ class SmartboxNode(object):
         self, hass: HomeAssistant
     ) -> Dict[str, Union[float, str, bool]]:
         return self.status
+
+    @property
+    def window_mode(self) -> bool:
+        if "window_mode_enabled" not in self._setup:
+            raise KeyError(
+                "window_mode_enabled not present in setup for node {self.name}"
+            )
+        return self._setup["window_mode_enabled"]
+
+    def set_window_mode(self, window_mode: bool):
+        self._session.set_setup(
+            self._device.dev_id, self._node_info, {"window_mode_enabled": window_mode}
+        )
+        self._setup["window_mode_enabled"] = window_mode
 
 
 def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
@@ -456,3 +496,11 @@ def set_preset_mode_status_update(
 
 def is_heating(node_type: str, status: Dict[str, Any]) -> str:
     return status["charging"] if node_type == HEATER_NODE_TYPE_ACM else status["active"]
+
+
+def get_factory_options(node: Union[SmartboxNode, MagicMock]) -> Dict[str, bool]:
+    return cast(Dict[str, bool], node.setup.get("factory_options", {}))
+
+
+def window_mode_available(node: Union[SmartboxNode, MagicMock]) -> bool:
+    return get_factory_options(node).get("window_mode_available", False)

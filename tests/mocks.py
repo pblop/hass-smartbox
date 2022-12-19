@@ -1,3 +1,4 @@
+from copy import deepcopy
 import logging
 from typing import Any, Dict
 from unittest.mock import AsyncMock, MagicMock
@@ -68,6 +69,10 @@ def get_away_status_switch_entity_name(mock_device: Dict[str, Any]) -> str:
     return f"{mock_device['name']} Away Status"
 
 
+def get_window_mode_switch_entity_name(mock_node: Dict[str, Any]) -> str:
+    return f"{mock_node['name']} Window Mode"
+
+
 def get_power_limit_number_entity_name(mock_device: Dict[str, Any]) -> str:
     return f"{mock_device['name']} Power Limit"
 
@@ -92,6 +97,11 @@ def get_sensor_entity_id(mock_node: Dict[str, Any], sensor_type: str) -> str:
 
 def get_away_status_switch_entity_id(mock_device: Dict[str, Any]) -> str:
     object_id = get_object_id(get_away_status_switch_entity_name(mock_device))
+    return get_entity_id_from_object_id(object_id, SWITCH_DOMAIN)
+
+
+def get_window_mode_switch_entity_id(mock_node: Dict[str, Any]) -> str:
+    object_id = get_object_id(get_window_mode_switch_entity_name(mock_node))
     return get_entity_id_from_object_id(object_id, SWITCH_DOMAIN)
 
 
@@ -123,6 +133,7 @@ class MockSmartbox(object):
         mock_config,
         mock_device_info,
         mock_node_info,
+        mock_node_setup,
         mock_node_status,
         start_available=True,
     ):
@@ -132,7 +143,9 @@ class MockSmartbox(object):
         self._device_info = mock_device_info
         self._devices = list(map(self._get_device, config_dev_ids))
         self._node_info = mock_node_info
-        # socket has most up to date status
+        # socket has most up to date status/setup
+        self._socket_node_setup = mock_node_setup
+        self._session_node_setup = deepcopy(self._socket_node_setup)
         self._socket_node_status = mock_node_status
         if not start_available:
             for dev in self._devices:
@@ -168,6 +181,17 @@ class MockSmartbox(object):
             self._session_node_status = self._socket_node_status
 
         mock_session.set_status = set_status
+
+        def get_setup(dev_id, node):
+            return self._session_node_setup[dev_id][node["addr"]]
+
+        mock_session.get_setup = get_setup
+
+        def set_setup(dev_id, node, setup_updates):
+            self._socket_node_setup[dev_id][node["addr"]].update(setup_updates)
+            self._session_node_setup = self._socket_node_setup
+
+        mock_session.set_setup = set_setup
 
         return mock_session
 
@@ -208,12 +232,22 @@ class MockSmartbox(object):
             return {"sync_status": "lost"}
         return status
 
+    def _get_socket_setup(self, dev_id, addr):
+        return self._socket_node_setup[dev_id][addr]
+
     def generate_socket_status_update(self, mock_device, mock_node, status_updates):
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
         self._socket_node_status[dev_id][addr].update(status_updates)
-        self._send_socket_update(dev_id, addr)
+        self._send_socket_status_update(dev_id, addr)
         return self._get_socket_status(dev_id, addr)
+
+    def generate_socket_setup_update(self, mock_device, mock_node, setup_updates):
+        dev_id = mock_device["dev_id"]
+        addr = mock_node["addr"]
+        self._socket_node_setup[dev_id][addr].update(setup_updates)
+        self._send_socket_setup_update(dev_id, addr)
+        return self._get_socket_setup(dev_id, addr)
 
     def generate_new_socket_status(self, mock_device, mock_node):
         dev_id = mock_device["dev_id"]
@@ -231,23 +265,33 @@ class MockSmartbox(object):
             status["power"] = str(float(status["power"]) + 1)
         self._socket_node_status[dev_id][addr] = status
 
-        self._send_socket_update(dev_id, addr)
+        self._send_socket_status_update(dev_id, addr)
         return self._get_socket_status(dev_id, addr)
 
     def generate_socket_node_unavailable(self, mock_device, mock_node):
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
         self._socket_node_status[dev_id][addr]["sync_status"] = "lost"
-        self._send_socket_update(dev_id, addr)
+        self._send_socket_status_update(dev_id, addr)
         return self._get_socket_status(dev_id, addr)
 
-    def _send_socket_update(self, dev_id, addr):
+    def _send_socket_status_update(self, dev_id, addr):
         socket = self.sockets[dev_id]
         node_type = self._node_info[dev_id][addr]["type"]
         socket.on_update(
             {
                 "path": f"/{node_type}/{addr}/status",
                 "body": self._get_socket_status(dev_id, addr),
+            }
+        )
+
+    def _send_socket_setup_update(self, dev_id, addr):
+        socket = self.sockets[dev_id]
+        node_type = self._node_info[dev_id][addr]["type"]
+        socket.on_update(
+            {
+                "path": f"/{node_type}/{addr}/setup",
+                "body": self._get_socket_setup(dev_id, addr),
             }
         )
 

@@ -157,6 +157,57 @@ MOCK_SMARTBOX_NODE_INFO = {
     ],
 }
 
+MOCK_SMARTBOX_NODE_SETUP: Dict[str, List[Dict[str, Any]]] = {
+    "test_device_id_1": [
+        {
+            "factory_options": {
+                "window_mode_available": True,
+            },
+            "window_mode_enabled": False,
+        },
+        {
+            "factory_options": {
+                "window_mode_available": False,
+            },
+        },
+    ],
+    "test_device_id_2": [
+        {
+            "factory_options": {
+                "window_mode_available": True,
+            },
+            "window_mode_enabled": True,
+        },
+        {
+            "factory_options": {
+                "window_mode_available": True,
+            },
+            "window_mode_enabled": False,
+        },
+        {
+            "factory_options": {
+                "window_mode_available": True,
+            },
+            "window_mode_enabled": True,
+        },
+        {
+            "factory_options": {
+                "window_mode_available": True,
+            },
+            "window_mode_enabled": False,
+        },
+        {
+            "factory_options": {
+                "window_mode_available": False,
+            },
+            "window_mode_enabled": True,
+        },
+        {
+            # Test factory_options missing
+        },
+    ],
+}
+
 MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
     "test_device_id_1": [
         {

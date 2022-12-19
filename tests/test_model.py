@@ -166,18 +166,21 @@ async def test_smartbox_device_init(hass, mock_smartbox):
             mock_nodes[0],
             mock_smartbox.session,
             mock_smartbox.session.get_status(dev_id, mock_nodes[0]),
+            mock_smartbox.session.get_setup(dev_id, mock_nodes[0]),
         )
         smartbox_node_ctor_mock.assert_any_call(
             device,
             mock_nodes[1],
             mock_smartbox.session,
             mock_smartbox.session.get_status(dev_id, mock_nodes[1]),
+            mock_smartbox.session.get_setup(dev_id, mock_nodes[1]),
         )
 
         assert dev_id in mock_smartbox.sockets
 
 
-async def test_smartbox_device_on_dev_data(hass):
+async def test_smartbox_device_dev_data_updates(hass):
+    """Independently test device data updates usually done by UpdateManager"""
     dev_id = "test_device_id_1"
     mock_session = MagicMock()
     mock_node_1 = MagicMock()
@@ -190,7 +193,7 @@ async def test_smartbox_device_on_dev_data(hass):
         device = SmartboxDevice(dev_id, "Device 1", mock_session, 5, 0.3)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
-            ("acm", 2): mock_node_2,
+            (HEATER_NODE_TYPE_ACM, 2): mock_node_2,
         }
 
         mock_dev_data = {"away": True}
@@ -201,8 +204,12 @@ async def test_smartbox_device_on_dev_data(hass):
         device._away_status_update(mock_dev_data)
         assert not device.away
 
+        device._power_limit_update(1045)
+        assert device.power_limit == 1045
 
-async def test_smartbox_device_on_update(hass, caplog):
+
+async def test_smartbox_device_node_status_update(hass, caplog):
+    """Independently test node status updates usually called by UpdateManager"""
     dev_id = "test_device_id_1"
     mock_session = MagicMock()
     mock_node_1 = MagicMock()
@@ -215,30 +222,71 @@ async def test_smartbox_device_on_update(hass, caplog):
         device = SmartboxDevice(dev_id, "Device 1", mock_session, 2, 0.1)
         device._nodes = {
             (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
-            ("acm", 2): mock_node_2,
+            (HEATER_NODE_TYPE_ACM, 2): mock_node_2,
         }
 
         mock_status = {"foo": "bar"}
-        device._node_status_update("htr", 1, mock_status)
+        device._node_status_update(HEATER_NODE_TYPE_HTR, 1, mock_status)
         mock_node_1.update_status.assert_called_with(mock_status)
         mock_node_2.update_status.assert_not_called()
 
         mock_node_1.reset_mock()
         mock_node_2.reset_mock()
-        device._node_status_update("acm", 2, mock_status)
+        device._node_status_update(HEATER_NODE_TYPE_ACM, 2, mock_status)
         mock_node_2.update_status.assert_called_with(mock_status)
         mock_node_1.update_status.assert_not_called()
 
         # test unknown node
         mock_node_1.reset_mock()
         mock_node_2.reset_mock()
-        device._node_status_update("htr", 3, mock_status)
+        device._node_status_update(HEATER_NODE_TYPE_HTR, 3, mock_status)
         mock_node_1.update_status.assert_not_called()
         mock_node_2.update_status.assert_not_called()
         assert (
             "custom_components.smartbox.model",
             logging.ERROR,
-            "Received update for unknown node htr 3",
+            "Received status update for unknown node htr 3",
+        ) in caplog.record_tuples
+
+
+async def test_smartbox_device_node_setup_update(hass, caplog):
+    """Independently test node setup updates usually called by UpdateManager"""
+    dev_id = "test_device_id_1"
+    mock_session = MagicMock()
+    mock_node_1 = MagicMock()
+    mock_node_2 = MagicMock()
+    # Simulate initialise_nodes with mock data, make sure nobody calls the real one
+    with patch(
+        "custom_components.smartbox.model.SmartboxDevice.initialise_nodes",
+        new_callable=NonCallableMock,
+    ):
+        device = SmartboxDevice(dev_id, "Device 1", mock_session, 2, 0.1)
+        device._nodes = {
+            (HEATER_NODE_TYPE_HTR, 1): mock_node_1,
+            (HEATER_NODE_TYPE_ACM, 2): mock_node_2,
+        }
+
+        mock_setup = {"foo": "bar"}
+        device._node_setup_update(HEATER_NODE_TYPE_HTR, 1, mock_setup)
+        mock_node_1.update_setup.assert_called_with(mock_setup)
+        mock_node_2.update_setup.assert_not_called()
+
+        mock_node_1.reset_mock()
+        mock_node_2.reset_mock()
+        device._node_setup_update(HEATER_NODE_TYPE_ACM, 2, mock_setup)
+        mock_node_2.update_setup.assert_called_with(mock_setup)
+        mock_node_1.update_setup.assert_not_called()
+
+        # test unknown node
+        mock_node_1.reset_mock()
+        mock_node_2.reset_mock()
+        device._node_setup_update(HEATER_NODE_TYPE_HTR, 3, mock_setup)
+        mock_node_1.update_setup.assert_not_called()
+        mock_node_2.update_setup.assert_not_called()
+        assert (
+            "custom_components.smartbox.model",
+            logging.ERROR,
+            "Received setup update for unknown node htr 3",
         ) in caplog.record_tuples
 
 
@@ -248,13 +296,16 @@ async def test_smartbox_node(hass):
     mock_device.dev_id = dev_id
     mock_device.away = False
     node_addr = 3
-    node_type = "htr"
+    node_type = HEATER_NODE_TYPE_HTR
     node_name = "Bathroom Heater"
     node_info = {"addr": node_addr, "name": node_name, "type": node_type}
     mock_session = MagicMock()
     initial_status = {"mtemp": "21.4", "stemp": "22.5"}
+    initial_setup = {"window_mode_enabled": False}
 
-    node = SmartboxNode(mock_device, node_info, mock_session, initial_status)
+    node = SmartboxNode(
+        mock_device, node_info, mock_session, initial_status, initial_setup
+    )
     assert node.node_id == f"{dev_id}-{node_addr}"
     assert node.name == node_name
     assert node.node_type == node_type
@@ -274,6 +325,14 @@ async def test_smartbox_node(hass):
 
     status_update = await node.async_update(hass)
     assert status_update == node.status
+
+    # setup fields
+    assert not node.window_mode
+    node.update_setup({"window_mode_enabled": True})
+    assert node.window_mode
+    node.update_setup({})
+    with pytest.raises(KeyError):
+        node.window_mode
 
 
 def test_is_heater_node():
