@@ -145,7 +145,7 @@ async def test_basic(hass, mock_smartbox, caplog):
             _check_state(hass, mock_node, mock_node_status, state)
 
             # check we opened a socket and the run function was awaited
-            socket = mock_smartbox.sockets[mock_device["dev_id"]]
+            socket = mock_smartbox.get_socket(mock_device["dev_id"])
             socket.run.assert_awaited()
 
             mock_smartbox.generate_socket_status_update(

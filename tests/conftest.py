@@ -63,7 +63,7 @@ def mock_smartbox(request):
     with patch(
         "custom_components.smartbox.model.Session",
         autospec=True,
-        return_value=mock_smartbox.session,
+        side_effect=mock_smartbox.get_mock_session,
     ):
         with patch(
             "smartbox.update_manager.SocketSession",

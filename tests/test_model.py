@@ -176,7 +176,7 @@ async def test_smartbox_device_init(hass, mock_smartbox):
             mock_smartbox.session.get_setup(dev_id, mock_nodes[1]),
         )
 
-        assert dev_id in mock_smartbox.sockets
+        assert mock_smartbox.get_socket(dev_id) is not None
 
 
 async def test_smartbox_device_dev_data_updates(hass):

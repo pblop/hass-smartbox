@@ -156,13 +156,13 @@ class MockSmartbox(object):
         # session status can be stale
         self._session_node_status = self._socket_node_status
 
-        self.session = self._get_session()
-        self.sockets = {}
+        self._session = self._create_mock_session()
+        self._sockets = {}
 
     def _get_device(self, dev_id):
         return self._device_info[dev_id]
 
-    def _get_session(self):
+    def _create_mock_session(self):
         mock_session = MagicMock()
         mock_session.get_devices.return_value = self._devices
 
@@ -195,6 +195,26 @@ class MockSmartbox(object):
 
         return mock_session
 
+    def get_mock_session(
+        self,
+        api_name: str,
+        basic_auth_credentials: str,
+        username: str,
+        password: str,
+        retry_attempts: int,
+        backoff_factor: float,
+    ):
+        """Patched to custom_components.smartbox.model.Session"""
+        return self._session
+
+    def _create_mock_socket(self, dev_id, on_dev_data, on_update):
+        mock_socket = MagicMock()
+        mock_socket.dev_id = dev_id
+        mock_socket.on_dev_data = on_dev_data
+        mock_socket.on_update = on_update
+        mock_socket.run = AsyncMock()
+        return mock_socket
+
     def get_mock_socket(
         self,
         session,
@@ -204,20 +224,26 @@ class MockSmartbox(object):
         reconnect_attempts,
         backoff_factor,
     ):
-        assert session == self.session
-        mock_socket = MagicMock()
-        mock_socket.dev_id = dev_id
-        mock_socket.on_dev_data = on_dev_data
-        mock_socket.on_update = on_update
-        mock_socket.run = AsyncMock()
-        self.sockets[dev_id] = mock_socket
+        """Patched to smartbox.update_manager.SocketSession"""
+        assert session == self._session
+        # shouldn't create more than one socket per device
+        assert dev_id not in self._sockets
+        mock_socket = self._create_mock_socket(dev_id, on_dev_data, on_update)
+        self._sockets[dev_id] = mock_socket
         return mock_socket
+
+    @property
+    def session(self):
+        return self._session
+
+    def get_socket(self, dev_id: str):
+        return self._sockets[dev_id]
 
     def get_devices(self):
         return self._devices
 
     def dev_data_update(self, mock_device, dev_data):
-        socket = self.sockets[mock_device["dev_id"]]
+        socket = self._sockets[mock_device["dev_id"]]
         socket.on_dev_data(dev_data)
 
     def _get_session_status(self, dev_id, addr):
@@ -276,7 +302,7 @@ class MockSmartbox(object):
         return self._get_socket_status(dev_id, addr)
 
     def _send_socket_status_update(self, dev_id, addr):
-        socket = self.sockets[dev_id]
+        socket = self._sockets[dev_id]
         node_type = self._node_info[dev_id][addr]["type"]
         socket.on_update(
             {
@@ -286,7 +312,7 @@ class MockSmartbox(object):
         )
 
     def _send_socket_setup_update(self, dev_id, addr):
-        socket = self.sockets[dev_id]
+        socket = self._sockets[dev_id]
         node_type = self._node_info[dev_id][addr]["type"]
         socket.on_update(
             {
