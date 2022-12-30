@@ -148,7 +148,7 @@ async def test_basic(hass, mock_smartbox, caplog):
             socket = mock_smartbox.get_socket(mock_device["dev_id"])
             socket.run.assert_awaited()
 
-            mock_smartbox.generate_socket_status_update(
+            mock_node_status = mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
                 {"mtemp": str(float(mock_node_status["mtemp"]) + 1)},
@@ -159,9 +159,6 @@ async def test_basic(hass, mock_smartbox, caplog):
             assert (
                 new_state.attributes[ATTR_CURRENT_TEMPERATURE]
                 != state.attributes[ATTR_CURRENT_TEMPERATURE]
-            )
-            mock_node_status = mock_smartbox.session.get_status(
-                mock_device["dev_id"], mock_node
             )
             _check_state(hass, mock_node, mock_node_status, new_state)
 

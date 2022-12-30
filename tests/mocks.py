@@ -154,7 +154,7 @@ class MockSmartbox(object):
                         "sync_status"
                     ] = "lost"
         # session status can be stale
-        self._session_node_status = self._socket_node_status
+        self._session_node_status = deepcopy(self._socket_node_status)
 
         self._session = self._create_mock_session()
         self._sockets = {}

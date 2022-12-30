@@ -67,7 +67,7 @@ async def test_basic_temp(hass, mock_smartbox):
             assert state.attributes[ATTR_LOCKED] == mock_node_status["locked"]
             _check_temp_state(hass, mock_node_status, state)
 
-            mock_smartbox.generate_socket_status_update(
+            mock_node_status = mock_smartbox.generate_socket_status_update(
                 mock_device,
                 mock_node,
                 {"mtemp": str(float(mock_node_status["mtemp"]) + 1)},
@@ -76,9 +76,6 @@ async def test_basic_temp(hass, mock_smartbox):
             await hass.helpers.entity_component.async_update_entity(entity_id)
             new_state = hass.states.get(entity_id)
             assert new_state.state != state.state
-            mock_node_status = mock_smartbox.session.get_status(
-                mock_device["dev_id"], mock_node
-            )
             _check_temp_state(hass, mock_node_status, new_state)
 
             # test unavailable
