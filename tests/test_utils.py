@@ -7,14 +7,14 @@ def simple_celsius_to_fahrenheit(temp: float) -> float:
     return temp * 9 / 5 + 32
 
 
-def convert_temp(hass, node_units, temp):
+def convert_temp(hass, node_units: str, temp: float) -> float:
     # Temperatures are converted to the units of the HA
     # instance, so do the same for comparison
     unit = TEMP_CELSIUS if node_units == "C" else TEMP_FAHRENHEIT
     return TemperatureConverter.convert(temp, unit, hass.config.units.temperature_unit)
 
 
-def round_temp(hass, temp):
+def round_temp(hass, temp: float) -> float:
     print(f"TEMP {temp} {type(temp)}")
     # HA uses different precisions for Fahrenheit (whole
     # integers) vs Celsius (tenths)
