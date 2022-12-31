@@ -49,7 +49,7 @@ from mocks import (
     get_node_unique_id,
 )
 
-from test_utils import convert_temp, round_temp
+from test_utils import assert_no_log_errors, convert_temp, round_temp
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -163,12 +163,7 @@ async def test_basic(hass, mock_smartbox, caplog):
             _check_state(hass, mock_node, mock_node_status, new_state)
 
     # Make sure we don't log any errors during setup
-    errors = [
-        record
-        for record in caplog.get_records("call")
-        if record.levelno >= logging.ERROR
-    ]
-    assert not errors
+    assert_no_log_errors(caplog)
 
 
 async def test_unavailable(hass, mock_smartbox):

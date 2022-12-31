@@ -52,6 +52,7 @@ from custom_components.smartbox.model import (
 )
 
 from mocks import mock_device, mock_node
+from test_utils import assert_log_message
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -242,11 +243,12 @@ async def test_smartbox_device_node_status_update(hass, caplog):
         device._node_status_update(HEATER_NODE_TYPE_HTR, 3, mock_status)
         mock_node_1.update_status.assert_not_called()
         mock_node_2.update_status.assert_not_called()
-        assert (
+        assert_log_message(
+            caplog,
             "custom_components.smartbox.model",
             logging.ERROR,
             "Received status update for unknown node htr 3",
-        ) in caplog.record_tuples
+        )
 
 
 async def test_smartbox_device_node_setup_update(hass, caplog):
@@ -283,11 +285,12 @@ async def test_smartbox_device_node_setup_update(hass, caplog):
         device._node_setup_update(HEATER_NODE_TYPE_HTR, 3, mock_setup)
         mock_node_1.update_setup.assert_not_called()
         mock_node_2.update_setup.assert_not_called()
-        assert (
+        assert_log_message(
+            caplog,
             "custom_components.smartbox.model",
             logging.ERROR,
             "Received setup update for unknown node htr 3",
-        ) in caplog.record_tuples
+        )
 
 
 async def test_smartbox_node(hass):

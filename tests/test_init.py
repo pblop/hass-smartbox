@@ -24,6 +24,7 @@ from custom_components.smartbox.const import (
 )
 from const import TEST_CONFIG_1, TEST_CONFIG_2, TEST_CONFIG_3
 from mocks import mock_device, mock_node
+from test_utils import assert_log_message
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -54,12 +55,13 @@ async def test_setup_basic(hass, caplog):
         )
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
 
-    assert (
+    assert_log_message(
+        caplog,
         "custom_components.smartbox",
         logging.INFO,
         f"Setting up Smartbox integration v{__version__}"
         f" (using smartbox v{SMARTBOX_VERSION})",
-    ) in caplog.record_tuples
+    )
 
 
 async def test_setup_multiple_accounts_and_devices(hass):
@@ -145,16 +147,18 @@ async def test_setup_missing_and_extra_devices(hass, caplog):
     assert mock_dev_1 in hass.data[DOMAIN][SMARTBOX_DEVICES]
     assert mock_dev_3 not in hass.data[DOMAIN][SMARTBOX_DEVICES]
 
-    assert (
+    assert_log_message(
+        caplog,
         "custom_components.smartbox",
         logging.ERROR,
         f"Configured device {dev_2_id} was not found",
-    ) in caplog.record_tuples
-    assert (
+    )
+    assert_log_message(
+        caplog,
         "custom_components.smartbox",
         logging.WARNING,
         f"Found device {dev_3_id} which was not configured - ignoring",
-    ) in caplog.record_tuples
+    )
     # Check there are no other errors
     for module, level, message in caplog.record_tuples:
         if module == "custom_components.smartbox" and level == logging.ERROR:
@@ -186,9 +190,10 @@ async def test_setup_unsupported_nodes(hass, caplog):
             TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_RECONNECT_ATTEMPTS],
             TEST_CONFIG_1[DOMAIN][CONF_ACCOUNTS][0][CONF_SOCKET_BACKOFF_FACTOR],
         )
-    assert (
+    assert_log_message(
+        caplog,
         "custom_components.smartbox",
         logging.ERROR,
         'Nodes of type "test_unsupported_node" are not yet supported; '
         "no entities will be created. Please file an issue on GitHub.",
-    ) in caplog.record_tuples
+    )

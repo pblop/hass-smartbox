@@ -2,6 +2,7 @@ from homeassistant.components.switch import DOMAIN as SWITCH_DOMAIN
 from homeassistant.components.switch import SERVICE_TURN_ON, SERVICE_TURN_OFF
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_FRIENDLY_NAME
 from homeassistant.setup import async_setup_component
+import logging
 
 from mocks import (
     get_entity_id_from_unique_id,
@@ -13,9 +14,7 @@ from mocks import (
     get_window_mode_switch_entity_id,
     get_window_mode_switch_entity_name,
 )
-
-import logging
-from typing import List
+from test_utils import assert_log_message
 
 
 async def test_away_status(hass, mock_smartbox):
@@ -81,17 +80,6 @@ async def test_away_status(hass, mock_smartbox):
     assert state.state == "on"
 
 
-# TODO: centralise
-def _get_log_messages(caplog, name: str, levelno: int) -> List[str]:
-    return [
-        record.message
-        for record in filter(
-            lambda r: r.name == name and r.levelno == levelno,
-            caplog.get_records("call"),
-        )
-    ]
-
-
 async def test_basic_window_mode(hass, mock_smartbox, caplog):
     assert await async_setup_component(hass, "smartbox", mock_smartbox.config)
     await hass.async_block_till_done()
@@ -108,11 +96,11 @@ async def test_basic_window_mode(hass, mock_smartbox, caplog):
             ].get("window_mode_available", False):
                 # We shouldn't have created a switch entity for this
                 assert hass.states.get(entity_id) is None
-                assert (
-                    f"Window mode not available for node {mock_node['name']}"
-                    in _get_log_messages(
-                        caplog, "custom_components.smartbox.switch", logging.INFO
-                    )
+                assert_log_message(
+                    caplog,
+                    "custom_components.smartbox.switch",
+                    logging.INFO,
+                    f"Window mode not available for node {mock_node['name']}",
                 )
                 continue
 
