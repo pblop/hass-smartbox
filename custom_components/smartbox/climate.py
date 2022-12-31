@@ -36,6 +36,7 @@ from .model import (
     set_temperature_args,
     SmartboxNode,
 )
+from .types import StatusDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -62,9 +63,7 @@ async def async_setup_platform(
     _LOGGER.debug("Finished setting up Smartbox climate platform")
 
 
-def status_to_hvac_action(
-    node_type: str, status: Dict[str, Union[float, str, bool]]
-) -> str:
+def status_to_hvac_action(node_type: str, status: StatusDict) -> str:
     return HVACAction.HEATING if is_heating(node_type, status) else HVACAction.IDLE
 
 

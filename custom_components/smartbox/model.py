@@ -29,6 +29,7 @@ from .const import (
     PRESET_SCHEDULE,
     PRESET_SELF_LEARN,
 )
+from .types import FactoryOptionsDict, SetupDict, StatusDict
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,7 +92,7 @@ class SmartboxDevice(object):
         self._power_limit = power_limit
 
     def _node_status_update(
-        self, node_type: str, addr: int, node_status: Dict[str, Union[float, str, bool]]
+        self, node_type: str, addr: int, node_status: StatusDict
     ) -> None:
         _LOGGER.debug(f"Node status update: {node_status}")
         node = self._nodes.get((node_type, addr), None)
@@ -101,7 +102,7 @@ class SmartboxDevice(object):
             _LOGGER.error(f"Received status update for unknown node {node_type} {addr}")
 
     def _node_setup_update(
-        self, node_type: str, addr: int, node_setup: Dict[str, Union[float, str, bool]]
+        self, node_type: str, addr: int, node_setup: SetupDict
     ) -> None:
         _LOGGER.debug(f"Node setup update: {node_setup}")
         node = self._nodes.get((node_type, addr), None)
@@ -172,24 +173,22 @@ class SmartboxNode(object):
         return self._node_info["addr"]
 
     @property
-    def status(self) -> Dict[str, Union[float, str, bool]]:
+    def status(self) -> StatusDict:
         return self._status
 
-    def update_status(self, status: Dict[str, Union[float, str, bool]]) -> None:
+    def update_status(self, status: StatusDict) -> None:
         _LOGGER.debug(f"Updating node {self.name} status: {status}")
         self._status = status
-
-    SetupDict = Dict[str, Union[float, str, bool, Dict[str, bool]]]
 
     @property
     def setup(self) -> SetupDict:
         return self._setup
 
-    def update_setup(self, setup: Dict[str, Union[float, str, bool]]) -> None:
+    def update_setup(self, setup: SetupDict) -> None:
         _LOGGER.debug(f"Updating node {self.name} setup: {setup}")
         self._setup = setup
 
-    def set_status(self, **status_args) -> Dict[str, Union[float, str, bool]]:
+    def set_status(self, **status_args) -> StatusDict:
         self._session.set_status(self._device.dev_id, self._node_info, status_args)
         # update our status locally until we get an update
         self._status |= {**status_args}
@@ -202,9 +201,7 @@ class SmartboxNode(object):
     def update_device_away_status(self, away: bool):
         self._device.set_away_status(away)
 
-    async def async_update(
-        self, hass: HomeAssistant
-    ) -> Dict[str, Union[float, str, bool]]:
+    async def async_update(self, hass: HomeAssistant) -> StatusDict:
         return self.status
 
     @property
@@ -498,8 +495,8 @@ def is_heating(node_type: str, status: Dict[str, Any]) -> str:
     return status["charging"] if node_type == HEATER_NODE_TYPE_ACM else status["active"]
 
 
-def get_factory_options(node: Union[SmartboxNode, MagicMock]) -> Dict[str, bool]:
-    return cast(Dict[str, bool], node.setup.get("factory_options", {}))
+def get_factory_options(node: Union[SmartboxNode, MagicMock]) -> FactoryOptionsDict:
+    return cast(FactoryOptionsDict, node.setup.get("factory_options", {}))
 
 
 def window_mode_available(node: Union[SmartboxNode, MagicMock]) -> bool:
