@@ -1,6 +1,6 @@
 from copy import deepcopy
 import logging
-from typing import Any, Dict
+from typing import Any, Dict, List
 from unittest.mock import AsyncMock, MagicMock
 
 from homeassistant.components.climate.const import DOMAIN as CLIMATE_DOMAIN
@@ -15,11 +15,12 @@ from custom_components.smartbox.const import (
     HEATER_NODE_TYPE_ACM,
     HEATER_NODE_TYPE_HTR_MOD,
 )
+from custom_components.smartbox.types import SetupDict, StatusDict
 
 _LOGGER = logging.getLogger(__name__)
 
 
-def mock_device(dev_id, nodes):
+def mock_device(dev_id: str, nodes: List[MagicMock]) -> MagicMock:
     dev = MagicMock()
     dev.dev_id = dev_id
     dev.get_nodes = MagicMock(return_value=nodes)
@@ -27,7 +28,7 @@ def mock_device(dev_id, nodes):
     return dev
 
 
-def mock_node(dev_id, addr, node_type, mode="auto"):
+def mock_node(dev_id: str, addr: int, node_type: str, mode="auto") -> MagicMock:
     node = MagicMock()
     node.node_type = node_type
     node.name = f"node_{addr}"
@@ -133,8 +134,8 @@ class MockSmartbox(object):
         mock_config,
         mock_device_info,
         mock_node_info,
-        mock_node_setup,
-        mock_node_status,
+        mock_node_setup: Dict[str, Dict[int, SetupDict]],
+        mock_node_status: Dict[str, Dict[int, StatusDict]],
         start_available=True,
     ):
         self.config = mock_config
@@ -157,7 +158,7 @@ class MockSmartbox(object):
         self._session_node_status = deepcopy(self._socket_node_status)
 
         self._session = self._create_mock_session()
-        self._sockets = {}
+        self._sockets: Dict[str, MagicMock] = {}
 
     def _get_device(self, dev_id):
         return self._device_info[dev_id]
@@ -246,36 +247,40 @@ class MockSmartbox(object):
         socket = self._sockets[mock_device["dev_id"]]
         socket.on_dev_data(dev_data)
 
-    def _get_session_status(self, dev_id, addr):
+    def _get_session_status(self, dev_id: str, addr: int) -> StatusDict:
         status = self._session_node_status[dev_id][addr]
         if status["sync_status"] == "lost":
             return {"sync_status": "lost"}
         return status
 
-    def _get_socket_status(self, dev_id, addr):
+    def _get_socket_status(self, dev_id: str, addr: int) -> StatusDict:
         status = self._socket_node_status[dev_id][addr]
         if status["sync_status"] == "lost":
             return {"sync_status": "lost"}
         return status
 
-    def _get_socket_setup(self, dev_id, addr):
+    def _get_socket_setup(self, dev_id: str, addr: int) -> SetupDict:
         return self._socket_node_setup[dev_id][addr]
 
-    def generate_socket_status_update(self, mock_device, mock_node, status_updates):
+    def generate_socket_status_update(
+        self, mock_device, mock_node, status_updates: StatusDict
+    ) -> StatusDict:
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
         self._socket_node_status[dev_id][addr].update(status_updates)
         self._send_socket_status_update(dev_id, addr)
         return self._get_socket_status(dev_id, addr)
 
-    def generate_socket_setup_update(self, mock_device, mock_node, setup_updates):
+    def generate_socket_setup_update(
+        self, mock_device, mock_node, setup_updates: SetupDict
+    ) -> SetupDict:
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
         self._socket_node_setup[dev_id][addr].update(setup_updates)
         self._send_socket_setup_update(dev_id, addr)
         return self._get_socket_setup(dev_id, addr)
 
-    def generate_new_socket_status(self, mock_device, mock_node):
+    def generate_new_socket_status(self, mock_device, mock_node) -> StatusDict:
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
         status = self._socket_node_status[dev_id][addr]
@@ -294,14 +299,14 @@ class MockSmartbox(object):
         self._send_socket_status_update(dev_id, addr)
         return self._get_socket_status(dev_id, addr)
 
-    def generate_socket_node_unavailable(self, mock_device, mock_node):
+    def generate_socket_node_unavailable(self, mock_device, mock_node) -> StatusDict:
         dev_id = mock_device["dev_id"]
         addr = mock_node["addr"]
         self._socket_node_status[dev_id][addr]["sync_status"] = "lost"
         self._send_socket_status_update(dev_id, addr)
         return self._get_socket_status(dev_id, addr)
 
-    def _send_socket_status_update(self, dev_id, addr):
+    def _send_socket_status_update(self, dev_id: str, addr: int) -> None:
         socket = self._sockets[dev_id]
         node_type = self._node_info[dev_id][addr]["type"]
         socket.on_update(
@@ -311,7 +316,7 @@ class MockSmartbox(object):
             }
         )
 
-    def _send_socket_setup_update(self, dev_id, addr):
+    def _send_socket_setup_update(self, dev_id: str, addr: int) -> None:
         socket = self._sockets[dev_id]
         node_type = self._node_info[dev_id][addr]["type"]
         socket.on_update(
@@ -322,7 +327,7 @@ class MockSmartbox(object):
         )
 
 
-def active_or_charging_update(node_type: str, active: bool) -> Dict[str, Any]:
+def active_or_charging_update(node_type: str, active: bool) -> StatusDict:
     return (
         {"charging": active}
         if node_type == HEATER_NODE_TYPE_ACM
