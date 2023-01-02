@@ -161,12 +161,15 @@ MOCK_SMARTBOX_NODE_SETUP: Dict[str, List[Dict[str, Any]]] = {
     "test_device_id_1": [
         {
             "factory_options": {
+                "true_radiant_available": True,
                 "window_mode_available": True,
             },
+            "true_radiant_enabled": False,
             "window_mode_enabled": False,
         },
         {
             "factory_options": {
+                "true_radiant_available": False,
                 "window_mode_available": False,
             },
         },
@@ -174,32 +177,42 @@ MOCK_SMARTBOX_NODE_SETUP: Dict[str, List[Dict[str, Any]]] = {
     "test_device_id_2": [
         {
             "factory_options": {
+                "true_radiant_available": True,
                 "window_mode_available": True,
             },
+            "true_radiant_enabled": True,
             "window_mode_enabled": True,
         },
         {
             "factory_options": {
+                "true_radiant_available": True,
                 "window_mode_available": True,
             },
+            "true_radiant_enabled": False,
             "window_mode_enabled": False,
         },
         {
             "factory_options": {
+                "true_radiant_available": True,
                 "window_mode_available": True,
             },
+            "true_radiant_enabled": True,
             "window_mode_enabled": True,
         },
         {
             "factory_options": {
+                "true_radiant_available": True,
                 "window_mode_available": True,
             },
+            "true_radiant_enabled": False,
             "window_mode_enabled": False,
         },
         {
             "factory_options": {
+                "true_radiant_available": False,
                 "window_mode_available": False,
             },
+            "true_radiant_enabled": True,
             "window_mode_enabled": True,
         },
         {

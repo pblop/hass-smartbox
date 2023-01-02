@@ -7,7 +7,12 @@ from typing import Any, Callable, Dict, List, Optional, Union
 from unittest.mock import MagicMock
 
 from .const import DOMAIN, SMARTBOX_DEVICES, SMARTBOX_NODES
-from .model import SmartboxDevice, SmartboxNode, window_mode_available
+from .model import (
+    SmartboxDevice,
+    SmartboxNode,
+    true_radiant_available,
+    window_mode_available,
+)
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -34,6 +39,11 @@ async def async_setup_platform(
             switch_entities.append(WindowModeSwitch(node))
         else:
             _LOGGER.info("Window mode not available for node %s", node.name)
+        if true_radiant_available(node):
+            _LOGGER.debug("Creating true_radiant switch for node %s", node.name)
+            switch_entities.append(TrueRadiantSwitch(node))
+        else:
+            _LOGGER.info("True radiant not available for node %s", node.name)
 
     async_add_entities(switch_entities, True)
 
@@ -96,3 +106,32 @@ class WindowModeSwitch(SwitchEntity):
     def is_on(self):
         """Return true if the switch is on."""
         return self._node.window_mode
+
+
+class TrueRadiantSwitch(SwitchEntity):
+    """Smartbox node true radiant switch"""
+
+    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+        self._node = node
+
+    @property
+    def name(self):
+        """Return the name of the switch."""
+        return f"{self._node.name} True Radiant"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._node.node_id}_true_radiant"
+
+    def turn_on(self, **kwargs):  # pylint: disable=unused-argument
+        """Turn on the switch."""
+        return self._node.set_true_radiant(True)
+
+    def turn_off(self, **kwargs):  # pylint: disable=unused-argument
+        """Turn off the switch."""
+        return self._node.set_true_radiant(False)
+
+    @property
+    def is_on(self):
+        """Return true if the switch is on."""
+        return self._node.true_radiant

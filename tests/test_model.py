@@ -304,7 +304,7 @@ async def test_smartbox_node(hass):
     node_info = {"addr": node_addr, "name": node_name, "type": node_type}
     mock_session = MagicMock()
     initial_status = {"mtemp": "21.4", "stemp": "22.5"}
-    initial_setup = {"window_mode_enabled": False}
+    initial_setup = {"true_radiant_enabled": False, "window_mode_enabled": False}
 
     node = SmartboxNode(
         mock_device, node_info, mock_session, initial_status, initial_setup
@@ -336,6 +336,14 @@ async def test_smartbox_node(hass):
     node.update_setup({})
     with pytest.raises(KeyError):
         node.window_mode
+
+    node.update_setup(initial_setup)
+    assert not node.true_radiant
+    node.update_setup({"true_radiant_enabled": True})
+    assert node.true_radiant
+    node.update_setup({})
+    with pytest.raises(KeyError):
+        node.true_radiant
 
 
 def test_is_heater_node():

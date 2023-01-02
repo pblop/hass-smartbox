@@ -218,6 +218,20 @@ class SmartboxNode(object):
         )
         self._setup["window_mode_enabled"] = window_mode
 
+    @property
+    def true_radiant(self) -> bool:
+        if "true_radiant_enabled" not in self._setup:
+            raise KeyError(
+                "true_radiant_enabled not present in setup for node {self.name}"
+            )
+        return self._setup["true_radiant_enabled"]
+
+    def set_true_radiant(self, true_radiant: bool):
+        self._session.set_setup(
+            self._device.dev_id, self._node_info, {"true_radiant_enabled": true_radiant}
+        )
+        self._setup["true_radiant_enabled"] = true_radiant
+
 
 def is_heater_node(node: Union[SmartboxNode, MagicMock]) -> bool:
     return node.node_type in HEATER_NODE_TYPES
@@ -501,3 +515,7 @@ def get_factory_options(node: Union[SmartboxNode, MagicMock]) -> FactoryOptionsD
 
 def window_mode_available(node: Union[SmartboxNode, MagicMock]) -> bool:
     return get_factory_options(node).get("window_mode_available", False)
+
+
+def true_radiant_available(node: Union[SmartboxNode, MagicMock]) -> bool:
+    return get_factory_options(node).get("true_radiant_available", False)

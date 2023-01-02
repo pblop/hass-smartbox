@@ -74,6 +74,10 @@ def get_window_mode_switch_entity_name(mock_node: Dict[str, Any]) -> str:
     return f"{mock_node['name']} Window Mode"
 
 
+def get_true_radiant_switch_entity_name(mock_node: Dict[str, Any]) -> str:
+    return f"{mock_node['name']} True Radiant"
+
+
 def get_power_limit_number_entity_name(mock_device: Dict[str, Any]) -> str:
     return f"{mock_device['name']} Power Limit"
 
@@ -103,6 +107,11 @@ def get_away_status_switch_entity_id(mock_device: Dict[str, Any]) -> str:
 
 def get_window_mode_switch_entity_id(mock_node: Dict[str, Any]) -> str:
     object_id = get_object_id(get_window_mode_switch_entity_name(mock_node))
+    return get_entity_id_from_object_id(object_id, SWITCH_DOMAIN)
+
+
+def get_true_radiant_switch_entity_id(mock_node: Dict[str, Any]) -> str:
+    object_id = get_object_id(get_true_radiant_switch_entity_name(mock_node))
     return get_entity_id_from_object_id(object_id, SWITCH_DOMAIN)
 
 
