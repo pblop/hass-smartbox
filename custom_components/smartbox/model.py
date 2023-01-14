@@ -335,8 +335,9 @@ def get_target_temperature(node_type: str, status: Dict[str, Any]) -> float:
             return float(status["ice_temp"])
         else:
             raise KeyError(
-                f"'Unexpected 'selected_temp' value {status['selected_temp']} found for "
-                f"{node_type} - please report to {GITHUB_ISSUES_URL}. status: {status}"
+                f"'Unexpected 'selected_temp' value {status['selected_temp']}"
+                f" found for {node_type} - please report to"
+                f" {GITHUB_ISSUES_URL}. status: {status}"
             )
     else:
         _check_status_key("stemp", node_type, status)
@@ -359,8 +360,9 @@ def set_temperature_args(
             )
         else:
             raise KeyError(
-                f"'Unexpected 'selected_temp' value {status['selected_temp']} found for "
-                f"{node_type} - please report to {GITHUB_ISSUES_URL}. status: {status}"
+                f"'Unexpected 'selected_temp' value {status['selected_temp']}"
+                f" found for {node_type} - please report to "
+                f"{GITHUB_ISSUES_URL}. status: {status}"
             )
         return {
             "on": True,

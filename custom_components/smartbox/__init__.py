@@ -78,7 +78,8 @@ async def async_setup(hass: HomeAssistant, config: dict) -> bool:
     hass.data.setdefault(DOMAIN, {})
 
     _LOGGER.info(
-        f"Setting up Smartbox integration v{__version__} (using smartbox v{SMARTBOX_VERSION})"
+        f"Setting up Smartbox integration v{__version__}"
+        f" (using smartbox v{SMARTBOX_VERSION})"
     )
 
     accounts_cfg = config[DOMAIN][CONF_ACCOUNTS]
