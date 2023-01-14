@@ -1,11 +1,9 @@
 -r requirements_common.txt
-black
 coverage
 # The version of homeassistant used for testing needs to be tightly coordinated with
 # pytest-homeassistant-custom-component and homeassistant-stubs
 homeassistant>=2022.10.4,<2022.11
 homeassistant-stubs>=2022.10.4,<2022.11
-flake8
 pytest
 pytest-aiohttp
 pytest-cov

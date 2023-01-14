@@ -34,7 +34,7 @@
         black
         mypy
         py-spy
-        python3Packages.flake8
+        ruff
       ];
     };
   };
