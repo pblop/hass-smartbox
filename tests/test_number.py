@@ -1,5 +1,5 @@
 from homeassistant.components.number import DOMAIN as NUMBER_DOMAIN
-from homeassistant.components.number import ATTR_VALUE, SERVICE_SET_VALUE
+from homeassistant.components.number import ATTR_VALUE, SERVICE_SET_VALUE  # type:ignore
 from homeassistant.const import ATTR_ENTITY_ID, ATTR_FRIENDLY_NAME
 from homeassistant.setup import async_setup_component
 

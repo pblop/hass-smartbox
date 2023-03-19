@@ -8,7 +8,7 @@ from homeassistant.const import (
 )
 from homeassistant.components.sensor import (
     SensorEntity,
-    STATE_CLASS_MEASUREMENT,
+    SensorStateClass,
 )
 from homeassistant.core import HomeAssistant
 import logging
@@ -99,7 +99,7 @@ class TemperatureSensor(SmartboxSensorBase):
     """Smartbox heater temperature sensor"""
 
     device_class = DEVICE_CLASS_TEMPERATURE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         super().__init__(node)
@@ -126,7 +126,7 @@ class PowerSensor(SmartboxSensorBase):
 
     device_class = DEVICE_CLASS_POWER
     native_unit_of_measurement = POWER_WATT
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         super().__init__(node)
@@ -156,7 +156,7 @@ class ChargeLevelSensor(SmartboxSensorBase):
 
     device_class = DEVICE_CLASS_BATTERY
     native_unit_of_measurement = PERCENTAGE
-    state_class = STATE_CLASS_MEASUREMENT
+    state_class = SensorStateClass.MEASUREMENT
 
     def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
         super().__init__(node)
