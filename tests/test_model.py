@@ -585,10 +585,18 @@ def test_set_hvac_mode_args():
     }
     with pytest.raises(ValueError):
         set_hvac_mode_args(HEATER_NODE_TYPE_HTR, {}, "blah")
-    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR_MOD, {}, HVAC_MODE_OFF,) == {
+    assert set_hvac_mode_args(
+        HEATER_NODE_TYPE_HTR_MOD,
+        {},
+        HVAC_MODE_OFF,
+    ) == {
         "on": False,
     }
-    assert set_hvac_mode_args(HEATER_NODE_TYPE_HTR_MOD, {}, HVAC_MODE_AUTO,) == {
+    assert set_hvac_mode_args(
+        HEATER_NODE_TYPE_HTR_MOD,
+        {},
+        HVAC_MODE_AUTO,
+    ) == {
         "on": True,
         "mode": "auto",
     }
