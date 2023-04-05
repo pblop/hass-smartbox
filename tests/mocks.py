@@ -13,6 +13,7 @@ from custom_components.smartbox.const import (
     CONF_ACCOUNTS,
     CONF_DEVICE_IDS,
     HEATER_NODE_TYPE_ACM,
+    HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
 )
 from custom_components.smartbox.types import SetupDict, StatusDict
@@ -46,6 +47,8 @@ def mock_node(dev_id: str, addr: int, node_type: str, mode="auto") -> MagicMock:
         node.status["charge_level"] = 4
     else:
         node.status["active"] = True
+    if node_type == HEATER_NODE_TYPE_HTR:
+        node.status["duty"] = 18
     if node_type == HEATER_NODE_TYPE_HTR_MOD:
         node.status["on"] = True
         node.status["selected_temp"] = "comfort"
@@ -303,6 +306,15 @@ class MockSmartbox(object):
         status["sync_status"] = "ok"
         if mock_node["type"] != HEATER_NODE_TYPE_HTR_MOD:
             status["power"] = str(float(status["power"]) + 1)
+        if mock_node["type"] == HEATER_NODE_TYPE_HTR:
+            if status["active"]:
+                status["duty"] = int(status["duty"]) + 1
+                if int(status["duty"]) > 100:
+                    # Duty is always 1 to 100 when active
+                    status["duty"] = 1
+            else:
+                # If active is false duty is always 0
+                status["duty"] = 0
         self._socket_node_status[dev_id][addr] = status
 
         self._send_socket_status_update(dev_id, addr)
@@ -337,8 +349,7 @@ class MockSmartbox(object):
 
 
 def active_or_charging_update(node_type: str, active: bool) -> StatusDict:
-    return (
-        {"charging": active}
-        if node_type == HEATER_NODE_TYPE_ACM
-        else {"active": active}
-    )
+    if node_type == HEATER_NODE_TYPE_ACM:
+        return {"charging": active}
+    else:
+        return {"active": active, "duty": 100 if active else 0}

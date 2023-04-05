@@ -223,6 +223,7 @@ MOCK_SMARTBOX_NODE_SETUP: Dict[str, List[Dict[str, Any]]] = {
 
 MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
     "test_device_id_1": [
+        # node type htr
         {
             "mtemp": "25.7",
             "stemp": "20.3",
@@ -231,8 +232,10 @@ MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
             "locked": False,
             "active": True,
             "power": "510",
+            "duty": 12,
             "mode": "auto",
         },
+        # node type acm
         {
             "mtemp": "19.2",
             "stemp": "21",
@@ -247,6 +250,7 @@ MOCK_SMARTBOX_NODE_STATUS: Dict[str, List[Dict[str, Any]]] = {
         },
     ],
     "test_device_id_2": [
+        # all nodes of type htr_mod
         {
             "on": True,
             "mtemp": "25.7",

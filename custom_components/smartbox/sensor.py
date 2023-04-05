@@ -3,6 +3,7 @@ from homeassistant.const import (
     DEVICE_CLASS_BATTERY,
     DEVICE_CLASS_TEMPERATURE,
     DEVICE_CLASS_POWER,
+    DEVICE_CLASS_POWER_FACTOR,
     PERCENTAGE,
     POWER_WATT,
 )
@@ -18,6 +19,7 @@ from unittest.mock import MagicMock
 from .const import (
     DOMAIN,
     HEATER_NODE_TYPE_ACM,
+    HEATER_NODE_TYPE_HTR,
     HEATER_NODE_TYPE_HTR_MOD,
     SMARTBOX_NODES,
 )
@@ -52,6 +54,17 @@ async def async_setup_platform(
             PowerSensor(node)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if is_heater_node(node) and node.node_type != HEATER_NODE_TYPE_HTR_MOD
+        ],
+        True,
+    )
+    # Duty Cycle
+    # Only nodes of type 'htr' seem to report the duty cycle, which is needed
+    # to compute energy consumption
+    async_add_entities(
+        [
+            DutyCycleSensor(node)
+            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            if node.node_type == HEATER_NODE_TYPE_HTR
         ],
         True,
     )
@@ -126,7 +139,7 @@ class PowerSensor(SmartboxSensorBase):
 
     Note: this represents the power the heater is drawing *when heating*; the
     heater is not always active over the entire period since the last update,
-    even when 'active' is true. The power factor sensor indicates how much it
+    even when 'active' is true. The duty cycle sensor indicates how much it
     was active. To measure energy consumption, use the corresponding energy
     sensor.
     """
@@ -153,6 +166,32 @@ class PowerSensor(SmartboxSensorBase):
             if is_heating(self._node.node_type, self._status)
             else 0
         )
+
+
+class DutyCycleSensor(SmartboxSensorBase):
+    """Smartbox heater duty cycle sensor
+
+    Represents the duty cycle for the heater.
+    """
+
+    device_class = DEVICE_CLASS_POWER_FACTOR
+    native_unit_of_measurement = PERCENTAGE
+    state_class = SensorStateClass.MEASUREMENT
+
+    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+        super().__init__(node)
+
+    @property
+    def name(self) -> str:
+        return f"{self._node.name} Duty Cycle"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._node.node_id}_duty_cycle"
+
+    @property
+    def native_value(self) -> float:
+        return self._status["duty"]
 
 
 class ChargeLevelSensor(SmartboxSensorBase):
