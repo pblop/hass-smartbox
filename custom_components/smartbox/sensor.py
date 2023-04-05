@@ -122,7 +122,14 @@ class TemperatureSensor(SmartboxSensorBase):
 
 
 class PowerSensor(SmartboxSensorBase):
-    """Smartbox heater power sensor"""
+    """Smartbox heater power sensor
+
+    Note: this represents the power the heater is drawing *when heating*; the
+    heater is not always active over the entire period since the last update,
+    even when 'active' is true. The power factor sensor indicates how much it
+    was active. To measure energy consumption, use the corresponding energy
+    sensor.
+    """
 
     device_class = DEVICE_CLASS_POWER
     native_unit_of_measurement = POWER_WATT
@@ -141,9 +148,6 @@ class PowerSensor(SmartboxSensorBase):
 
     @property
     def native_value(self) -> float:
-        # TODO: is this correct? The heater seems to report power usage all the
-        # time otherwise, which doesn't make sense and doesn't tally with the
-        # graphs in the vendor app UI
         return (
             self._status["power"]
             if is_heating(self._node.node_type, self._status)
