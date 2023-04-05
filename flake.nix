@@ -21,9 +21,11 @@
     };
   in {
     devShells.${system}.default = let
-      python = pkgs.nur.repos.graham33.home-assistant.python;
+      home-assistant = pkgs.nur.repos.graham33.home-assistant;
+      python = home-assistant.python;
+      pythonPackages = python.pkgs;
       hass-smartbox = pkgs.nur.repos.graham33.hass-smartbox.overridePythonAttrs (o: {
-        propagatedBuildInputs = (o.propagatedBuildInputs or []) ++ (with python.pkgs; [
+        propagatedBuildInputs = (o.propagatedBuildInputs or []) ++ (with pythonPackages; [
         ]);
       });
     in pkgs.mkShell {
