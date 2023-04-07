@@ -1,9 +1,12 @@
+from datetime import datetime, timedelta
 from homeassistant.const import (
     ATTR_LOCKED,
     DEVICE_CLASS_BATTERY,
-    DEVICE_CLASS_TEMPERATURE,
+    DEVICE_CLASS_ENERGY,
     DEVICE_CLASS_POWER,
     DEVICE_CLASS_POWER_FACTOR,
+    DEVICE_CLASS_TEMPERATURE,
+    ENERGY_WATT_HOUR,
     PERCENTAGE,
     POWER_WATT,
 )
@@ -57,12 +60,20 @@ async def async_setup_platform(
         ],
         True,
     )
-    # Duty Cycle
+    # Duty Cycle and Energy
     # Only nodes of type 'htr' seem to report the duty cycle, which is needed
     # to compute energy consumption
     async_add_entities(
         [
             DutyCycleSensor(node)
+            for node in hass.data[DOMAIN][SMARTBOX_NODES]
+            if node.node_type == HEATER_NODE_TYPE_HTR
+        ],
+        True,
+    )
+    async_add_entities(
+        [
+            EnergySensor(node)
             for node in hass.data[DOMAIN][SMARTBOX_NODES]
             if node.node_type == HEATER_NODE_TYPE_HTR
         ],
@@ -86,6 +97,8 @@ class SmartboxSensorBase(SensorEntity):
         self._node = node
         self._status: Dict[str, Any] = {}
         self._available = False  # unavailable until we get an update
+        self._last_update: Optional[datetime] = None
+        self._time_since_last_update: Optional[timedelta] = None
         _LOGGER.debug(f"Created node {self.name} unique_id={self.unique_id}")
 
     @property
@@ -104,8 +117,18 @@ class SmartboxSensorBase(SensorEntity):
             # update our status
             self._status = new_status
             self._available = True
+            update_time = datetime.now()
+            if self._last_update is not None:
+                self._time_since_last_update = update_time - self._last_update
+            self._last_update = update_time
         else:
             self._available = False
+            self._last_update = None
+            self._time_since_last_update = None
+
+    @property
+    def time_since_last_update(self) -> Optional[timedelta]:
+        return self._time_since_last_update
 
 
 class TemperatureSensor(SmartboxSensorBase):
@@ -192,6 +215,43 @@ class DutyCycleSensor(SmartboxSensorBase):
     @property
     def native_value(self) -> float:
         return self._status["duty"]
+
+
+class EnergySensor(SmartboxSensorBase):
+    """Smartbox heater energy sensor
+
+    Represents the energy consumed by the heater.
+    """
+
+    device_class = DEVICE_CLASS_ENERGY
+    native_unit_of_measurement = ENERGY_WATT_HOUR
+    state_class = SensorStateClass.TOTAL
+
+    def __init__(self, node: Union[SmartboxNode, MagicMock]) -> None:
+        super().__init__(node)
+
+    @property
+    def name(self) -> str:
+        return f"{self._node.name} Energy"
+
+    @property
+    def unique_id(self) -> str:
+        return f"{self._node.node_id}_energy"
+
+    @property
+    def native_value(self) -> float | None:
+        time_since_last_update = self.time_since_last_update
+        if time_since_last_update is not None:
+            return (
+                float(self._status["power"])
+                * float(self._status["duty"])
+                / 100
+                * time_since_last_update.seconds
+                / 60
+                / 60
+            )
+        else:
+            return None
 
 
 class ChargeLevelSensor(SmartboxSensorBase):
