@@ -1,6 +1,54 @@
 # hass-smartbox ![hassfest](https://github.com/graham33/hass-smartbox/workflows/Validate%20with%20hassfest/badge.svg) [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration) [![codecov](https://codecov.io/gh/graham33/hass-smartbox/branch/main/graph/badge.svg?token=F3VFCU9WPA)](https://codecov.io/gh/graham33/hass-smartbox)
 Home Assistant integration for heating smartboxes.
 
+## Supported Heaters
+
+The integration supports heaters of different types from different manufacturers
+that use a common cloud protocol. Most models use a WiFi 'smartbox' device
+which the heater nodes communicate with, but some have WiFi capabilities in each
+heater. Note there is no option for local control without the cloud service
+dependency.
+
+Each heater node is modelled as a Home Assistant climate entity. Some other
+entities are provided to expose other data, depending on the type of heater. An
+Away mode switch is provided for each smartbox device, as well as a Power Limit
+number entity which can be used to set the overall power limit.
+
+### `htr` Heater Nodes
+For example Climastar, some Haverland models, HJM, Wibo
+* Climate:
+  * Modes: 'manual' and 'auto'
+  * Presets: 'home and 'away'
+* Sensor: Temperature, Energy, Power, Duty Cycle
+* Switch: Window Mode (if supported), True Radiant Mode (if supported)
+
+### `acm` Accumulator Nodes
+For example Elnur Gabarron
+* Climate:
+  * Modes: 'manual' and 'auto'
+  * Presets: 'home and 'away'
+* Sensor: Temperature, Power, Charge Level
+* Switch: Window Mode (if supported), True Radiant Mode (if supported)
+
+### `htr_mod` Heater Nodes
+For example Haverland Smartwave and Ultrad
+* Climate:
+  * Modes: 'manual', 'auto', 'self_learn' and 'presence'
+  * Presets: 'away', 'comfort', 'eco', 'ice' and 'away'
+* Sensor: Temperature
+* Switch: Window Mode (if supported), True Radiant Mode (if supported)
+
+The modes and presets for htr_mod heaters are mapped as follows:
+
+| htr\_mod mode | htr\_mod selected_temp | HA HVAC mode | HA preset   |
+|---------------|------------------------|--------------|-------------|
+| manual        | comfort                | HEAT         | COMFORT     |
+|               | eco                    | HEAT         | ECO         |
+|               | ice                    | HEAT         | ICE         |
+| auto          | *                      | AUTO         | SCHEDULE    |
+| self\_learn   | *                      | AUTO         | SELF\_LEARN |
+| presence      | *                      | AUTO         | ACTIVITY    |
+
 ## Installation
 This integration uses the [smartbox] Python module, so make sure to install that
 into your Home Assistant python environment first. If you are using hass.io, the
@@ -67,16 +115,26 @@ smartbox:
     socket_backoff_factor: 0.1 # how much to backoff between initial socket connect attempts
 ```
 
-### Use in energy dashboard
+### Use in Energy Dashboard
 
-To use the values in the Energy dashboard of Home Assistant, you have to
-aggregate the power sensors into energy sensors via an integration
-(https://www.home-assistant.io/integrations/integration/#energy)
+If you have `htr` type heaters (see Supported Heaters above), then you should
+see an Energy entity for each node. These sensors compute the power used over
+time by multiplying the reported power usage of the heater by the reported duty
+cycle and the time between updates, which appears to be reasonably accurate (at
+least compared to the usage reported in the manufacturer's web app).
 
-*WARNING*: currently the power sensors created by this component seem to
-misreport power usage quite significantly. This is because they record power
-used when the status of the device is 'active', but status updates are very
-infrequent and so this won't be accurate.
+If you have `acm` heaters, there is a power sensor available but unfortunately
+the heaters don't report their duty cycle (i.e. how much of the period since the
+last update that the heater was actually active for). One option to use the
+values in the Energy dashboard is to aggregate the power sensors into energy
+sensors via an integration
+(https://www.home-assistant.io/integrations/integration/#energy), however it
+should be noted that _this is likely to be quite inaccurate_, since the heater
+won't be active the whole period between each update.
+
+Unfortunately `htr_mod` heaters don't appear to report power or duty cycle, so
+there's no known option to measure their energy consumption (aside from
+installing a separate sensor like a Shelly EM on the power input).
 
 ```
 sensor:
@@ -89,29 +147,6 @@ sensor:
 ```
 
 The resulting sensor 'sensor.energy_living_room' can then be added to the Energy dashboard as soon as it has values.
-
-## Supported Node types
-
-### Heaters
-These are modelled as Home Assistant Climate entities.
-
-* `htr` and `acm` (accumulator) nodes
-  * Supported modes: 'manual' and 'auto'
-  * Supported presets: 'home and 'away'
-* `htr_mod`
-  * Supported modes: 'manual', 'auto', 'self_learn' and 'presence'
-  * Supported presets: 'away', 'comfort', 'eco', 'ice' and 'away'
-
-The modes and presets for htr_mod heaters are mapped as follows:
-
-| htr\_mod mode | htr\_mod selected_temp | HA HVAC mode | HA preset   |
-|---------------|------------------------|--------------|-------------|
-| manual        | comfort                | HEAT         | COMFORT     |
-|               | eco                    | HEAT         | ECO         |
-|               | ice                    | HEAT         | ICE         |
-| auto          | *                      | AUTO         | SCHEDULE    |
-| self\_learn   | *                      | AUTO         | SELF\_LEARN |
-| presence      | *                      | AUTO         | ACTIVITY    |
 
 ## Debugging
 
