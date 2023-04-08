@@ -128,13 +128,9 @@ the heaters don't report their duty cycle (i.e. how much of the period since the
 last update that the heater was actually active for). One option to use the
 values in the Energy dashboard is to aggregate the power sensors into energy
 sensors via an integration
-(https://www.home-assistant.io/integrations/integration/#energy), however it
-should be noted that _this is likely to be quite inaccurate_, since the heater
-won't be active the whole period between each update.
-
-Unfortunately `htr_mod` heaters don't appear to report power or duty cycle, so
-there's no known option to measure their energy consumption (aside from
-installing a separate sensor like a Shelly EM on the power input).
+(https://www.home-assistant.io/integrations/integration/#energy), as shown
+below. However it should be noted that _this is likely to be quite inaccurate_,
+since the heater won't be active the whole period between each update.
 
 ```
 sensor:
@@ -146,7 +142,12 @@ sensor:
     method: left
 ```
 
-The resulting sensor 'sensor.energy_living_room' can then be added to the Energy dashboard as soon as it has values.
+The resulting sensor 'sensor.energy_living_room' can then be added to the Energy
+dashboard as soon as it has values.
+
+Unfortunately `htr_mod` heaters don't appear to report power or duty cycle, so
+there's no known option to measure their energy consumption (aside from
+installing a separate sensor like a Shelly EM on the power input).
 
 ## Debugging
 
