@@ -61,7 +61,8 @@ integration docs] for details.
 
 ### HACS
 Initial support is available for installation via HACS, as a [custom
-repository].
+repository]. If you want to install beta releases make sure you have enabled
+pre-release support as described in the [HACS FAQ] .
 
 ## Configuration
 **Note: currently only YAML-based configuration is supported, the UI-based
@@ -177,6 +178,7 @@ file a [Github issue] with any problems.
 
 [custom repository]: https://hacs.xyz/docs/faq/custom_repositories
 [Github issue]: https://github.com/graham33/hass-smartbox/issues
+[HACS FAQ]: https://hacs.xyz/docs/faq/beta/
 [Home Assistant integration docs]: https://developers.home-assistant.io/docs/creating_integration_file_structure/#where-home-assistant-looks-for-integrations
 [Home Assistant logger docs]: https://www.home-assistant.io/integrations/logger/#viewing-logs
 [Home Assistant secrets management]: https://www.home-assistant.io/docs/configuration/secrets/
