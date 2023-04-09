@@ -3,11 +3,11 @@
 set -eu
 
 manifest_version() {
-    sed -n -e 's/^.*"version": "\([0-9\.]\+\)".*$/\1/p' custom_components/smartbox/manifest.json
+    sed -n -e 's/^.*"version": "\([0-9\.]\+\(-[a-z0-9\.]\+\)\?\)".*$/\1/p' custom_components/smartbox/manifest.json
 }
 
 module_version() {
-    sed -n -e 's/^__version__ = "\([0-9\.]\+\)".*$/\1/p' custom_components/smartbox/__init__.py
+    sed -n -e 's/^__version__ = "\([0-9\.]\+\(-[a-z0-9\.]\+\)\?\)".*$/\1/p' custom_components/smartbox/__init__.py
 }
 
 manifest_smartbox_version() {
