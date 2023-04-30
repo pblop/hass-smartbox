@@ -35,7 +35,7 @@
       packages = with pkgs; [
         black
         mypy
-        py-spy
+        #py-spy
         ruff
       ];
     };
