@@ -37,7 +37,9 @@
         mypy
         #py-spy
         ruff
+        semver-tool
       ];
     };
+    packages."${system}" = pkgs;
   };
 }
