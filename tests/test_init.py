@@ -1,4 +1,5 @@
 import logging
+import pytest
 from unittest.mock import patch
 
 from homeassistant.setup import async_setup_component
@@ -64,6 +65,8 @@ async def test_setup_basic(hass, caplog):
     )
 
 
+# TODO: remove once switched to config flow
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_setup_multiple_accounts_and_devices(hass):
     dev_1_id = "test_device_id_1"
     mock_dev_1_node_1 = mock_node(dev_1_id, 1, HEATER_NODE_TYPE_HTR_MOD)
@@ -114,6 +117,8 @@ async def test_setup_multiple_accounts_and_devices(hass):
     assert mock_dev_2_2 in hass.data[DOMAIN][SMARTBOX_DEVICES]
 
 
+# TODO: remove once switched to config flow
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_setup_missing_and_extra_devices(hass, caplog):
     # config specifies devices 1 and 2, but 2 is missing and 3 exists
     dev_1_id = "test_device_id_1"
@@ -167,6 +172,8 @@ async def test_setup_missing_and_extra_devices(hass, caplog):
             )
 
 
+# TODO: remove once switched to config flow
+@pytest.mark.parametrize("expected_lingering_timers", [True])
 async def test_setup_unsupported_nodes(hass, caplog):
     dev_1_id = "test_device_id_1"
     mock_node_1 = mock_node(dev_1_id, 1, HEATER_NODE_TYPE_HTR_MOD)
