@@ -1,1 +1,1 @@
-smartbox==2.0.0b2
+smartbox @ git+https://github.com/pblop/smartbox@main
