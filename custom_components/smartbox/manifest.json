@@ -2,15 +2,15 @@
     "domain": "smartbox",
     "name": "Smartbox",
     "codeowners": [
-        "@graham33"
+        "@pblop"
     ],
     "config_flow": false,
     "dependencies": [],
-    "documentation": "https://github.com/graham33/hass-smartbox",
+    "documentation": "https://github.com/pblop/hass-smartbox",
     "iot_class": "cloud_polling",
-    "issue_tracker": "https://github.com/graham33/hass-smartbox/issues",
+    "issue_tracker": "https://github.com/pblop/hass-smartbox/issues",
     "requirements": [
-        "smartbox==2.0.0b2"
+        "smartbox @ git+https://github.com/pblop/smartbox@main"
     ],
     "version": "2.0.0-beta.2"
 }
